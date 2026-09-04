@@ -539,12 +539,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Render Gold Chart (Chart.js)
-  function renderGoldChart(days = 7) {
+  async function renderGoldChart(timeframe = "7d") {
     const canvas = document.getElementById("goldPriceChart");
     if (!canvas || typeof Chart === "undefined") return;
 
     const ctx = canvas.getContext("2d");
-    const { labels, buyData, sellData } = GoldManager.generateHistoricalData(days);
+    const { labels, buyData, sellData } = await GoldManager.fetchHistoryGoldFromDB(timeframe);
 
     if (goldChartInstance) {
       goldChartInstance.destroy();
@@ -553,6 +553,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const isDark = state.theme === "dark";
     const gridColor = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.05)";
     const textColor = isDark ? "#94a3b8" : "#64748b";
+
+    const pointRadius = timeframe === "7d" ? 4 : timeframe === "30d" ? 2.5 : 3.5;
 
     goldChartInstance = new Chart(ctx, {
       type: "line",
@@ -567,7 +569,7 @@ document.addEventListener("DOMContentLoaded", () => {
             fill: true,
             tension: 0.35,
             borderWidth: 2.5,
-            pointRadius: days === 7 ? 4 : 2,
+            pointRadius: pointRadius,
             pointBackgroundColor: "#ef4444"
           },
           {
@@ -578,7 +580,7 @@ document.addEventListener("DOMContentLoaded", () => {
             fill: true,
             tension: 0.35,
             borderWidth: 2.5,
-            pointRadius: days === 7 ? 4 : 2,
+            pointRadius: pointRadius,
             pointBackgroundColor: "#16a34a"
           }
         ]
@@ -608,7 +610,10 @@ document.addEventListener("DOMContentLoaded", () => {
             borderWidth: 1,
             padding: 8,
             titleFont: { family: "Be Vietnam Pro", size: 11, weight: "700" },
-            bodyFont: { family: "Be Vietnam Pro", size: 11 }
+            bodyFont: { family: "Be Vietnam Pro", size: 11 },
+            callbacks: {
+              label: (ctx) => ` ${ctx.dataset.label}: ${ctx.raw} tr/lượng`
+            }
           }
         },
         scales: {
@@ -647,8 +652,8 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", () => {
       timeframeBtns.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
-      const days = parseInt(btn.getAttribute("data-days"), 10);
-      renderGoldChart(days);
+      const tf = btn.getAttribute("data-timeframe") || "7d";
+      renderGoldChart(tf);
     });
   });
 
@@ -848,7 +853,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initGoldTypesSelect();
   calculateGold();
   renderGoldTable();
-  renderGoldChart(7);
+  renderGoldChart("7d");
 
   // Init Currency Rates
   loadCurrencyRates(false);

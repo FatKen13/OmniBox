@@ -1,0 +1,38 @@
+{
+  "updatedAt": "2026-09-04T15:39:44+07:00",
+  "updatedDate": "2026-09-04",
+  "source": "SJC & Thị Trường Vàng Việt Nam",
+  "unit": "triệu đồng / lượng",
+  "items": [
+    {
+      "id": "sjc_hcm",
+      "brand": "SJC",
+      "name": "Vàng miếng SJC 1L - 10L",
+      "city": "Toàn quốc",
+      "buy": 145.6,
+      "sell": 148.6,
+      "buyPerChi": 14.56,
+      "sellPerChi": 14.86
+    },
+    {
+      "id": "sjc_nhan",
+      "brand": "SJC",
+      "name": "Vàng nhẫn SJC 99.99 (1-5 chỉ)",
+      "city": "TP.HCM",
+      "buy": 147.5,
+      "sell": 150.5,
+      "buyPerChi": 14.75,
+      "sellPerChi": 15.05
+    },
+    {
+      "id": "doji_hn",
+      "brand": "DOJI",
+      "name": "Vàng DOJI AVPL",
+      "city": "Toàn quốc",
+      "buy": 145.6,
+      "sell": 148.6,
+      "buyPerChi": 14.56,
+      "sellPerChi": 14.86
+    }
+  ]
+}

@@ -165,9 +165,82 @@ const GoldManager = (() => {
     return Math.round(amount).toLocaleString("vi-VN") + " ₫";
   }
 
+  // Nạp dữ liệu giá vàng mới nhất từ DataHub-Public (hoặc cache cục bộ)
+  async function fetchLatestGoldFromDB() {
+    // 1. Thử lấy từ DataHub-Public CDN trực tuyến
+    if (typeof DataHub !== 'undefined' && DataHub.getPublicData) {
+      try {
+        const json = await DataHub.getPublicData("market/gold.json");
+        if (json && json.items && json.items.length > 0) {
+          return json;
+        }
+      } catch (e) {
+        console.warn("[GoldManager] DataHub-Public offline, fallback local cache:", e);
+      }
+    }
+
+    // 2. Fallback file local data/gold-latest.json
+    try {
+      const res = await fetch("data/gold-latest.json");
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (e) {
+      console.warn("Dung du lieu vang offline:", e);
+    }
+    return null;
+  }
+
+  // Nạp lịch sử giá vàng từ DataHub-Public theo mốc thời gian ('7d', '30d', '1y', 'all')
+  async function fetchHistoryGoldFromDB(timeframe = "7d") {
+    const filenameMap = {
+      "7d": "market/history/gold-history-7d.json",
+      "30d": "market/history/gold-history-30d.json",
+      "1y": "market/history/gold-history-1y.json",
+      "all": "market/history/gold-history-all.json"
+    };
+
+    const endpoint = filenameMap[timeframe] || filenameMap["7d"];
+
+    if (typeof DataHub !== 'undefined' && DataHub.getPublicData) {
+      try {
+        const rawHistory = await DataHub.getPublicData(endpoint);
+        if (Array.isArray(rawHistory) && rawHistory.length > 0) {
+          const labels = [];
+          const buyData = [];
+          const sellData = [];
+
+          rawHistory.forEach(item => {
+            const parts = item.date.split("-");
+            // Định dạng nhãn hiển thị: Nếu là 'all' thì hiện mm/yy hoặc yyyy, còn ngắn ngày thì dd/mm
+            let label = `${parseInt(parts[2])}/${parseInt(parts[1])}`;
+            if (timeframe === "all") {
+              label = `${parts[1]}/${parts[0].slice(2)}`;
+            } else if (timeframe === "1y") {
+              label = `${parts[2]}/${parts[1]}`;
+            }
+            labels.push(label);
+            buyData.push(item.buy);
+            sellData.push(item.sell);
+          });
+
+          return { labels, buyData, sellData };
+        }
+      } catch (e) {
+        console.warn(`[GoldManager] Khong the tai history ${timeframe} tu DataHub:`, e);
+      }
+    }
+
+    // Fallback mô phỏng nếu không có mạng
+    const daysMap = { "7d": 7, "30d": 30, "1y": 365, "all": 1800 };
+    return generateHistoricalData(daysMap[timeframe] || 7);
+  }
+
   return {
     GOLD_TYPES,
     generateHistoricalData,
+    fetchLatestGoldFromDB,
+    fetchHistoryGoldFromDB,
     calculateGoldMoney,
     formatVnd
   };

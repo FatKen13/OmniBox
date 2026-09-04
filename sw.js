@@ -1,4 +1,4 @@
-const CACHE_NAME = "omnibox-v6";
+const CACHE_NAME = "omnibox-v7";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
@@ -6,6 +6,7 @@ const ASSETS_TO_CACHE = [
   "./js/lunar.js",
   "./js/units.js",
   "./js/currency.js",
+  "./js/datahub-sync.js",
   "./js/gold.js",
   "./js/app.js",
   "./manifest.json",
