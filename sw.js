@@ -1,4 +1,4 @@
-const CACHE_NAME = "omnibox-v7";
+const CACHE_NAME = "omnibox-v8";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",

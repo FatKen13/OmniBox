@@ -538,13 +538,42 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Update Range KPI Stats
+  function updateChartKPIs(stats) {
+    const peakEl = document.getElementById("kpi-peak-val");
+    const lowEl = document.getElementById("kpi-low-val");
+    const changeEl = document.getElementById("kpi-change-val");
+
+    if (!stats || !peakEl || !lowEl || !changeEl) return;
+
+    peakEl.textContent = `${stats.peak.toFixed(2)} tr`;
+    lowEl.textContent = `${stats.low.toFixed(2)} tr`;
+
+    const isUp = stats.changeVal >= 0;
+    const sign = isUp ? "+" : "";
+    changeEl.className = `kpi-value ${isUp ? "up" : "down"}`;
+    changeEl.innerHTML = `<i class="fa-solid fa-arrow-trend-${isUp ? "up" : "down"}"></i> ${sign}${stats.changeVal} tr (${sign}${stats.changePercent}%)`;
+  }
+
   // Render Gold Chart (Chart.js)
-  async function renderGoldChart(timeframe = "7d") {
+  async function renderGoldChart(timeframeOrData = "7d") {
     const canvas = document.getElementById("goldPriceChart");
     if (!canvas || typeof Chart === "undefined") return;
 
     const ctx = canvas.getContext("2d");
-    const { labels, buyData, sellData } = await GoldManager.fetchHistoryGoldFromDB(timeframe);
+    let chartData;
+
+    if (typeof timeframeOrData === "string") {
+      chartData = await GoldManager.fetchHistoryGoldFromDB(timeframeOrData);
+    } else {
+      chartData = timeframeOrData;
+    }
+
+    const { labels, buyData, sellData, stats } = chartData;
+
+    if (stats) {
+      updateChartKPIs(stats);
+    }
 
     if (goldChartInstance) {
       goldChartInstance.destroy();
@@ -554,7 +583,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const gridColor = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.05)";
     const textColor = isDark ? "#94a3b8" : "#64748b";
 
-    const pointRadius = timeframe === "7d" ? 4 : timeframe === "30d" ? 2.5 : 3.5;
+    const pointRadius = labels.length <= 10 ? 4 : labels.length <= 35 ? 2.5 : 3.5;
 
     goldChartInstance = new Chart(ctx, {
       type: "line",
@@ -650,12 +679,68 @@ document.addEventListener("DOMContentLoaded", () => {
 
   timeframeBtns.forEach(btn => {
     btn.addEventListener("click", () => {
+      if (btn.id === "btn-toggle-custom-filter") return;
       timeframeBtns.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       const tf = btn.getAttribute("data-timeframe") || "7d";
       renderGoldChart(tf);
     });
   });
+
+  // Toggle Custom Slicer Panel
+  const btnToggleCustomFilter = document.getElementById("btn-toggle-custom-filter");
+  const chartSlicerPanel = document.getElementById("chart-slicer-panel");
+  if (btnToggleCustomFilter && chartSlicerPanel) {
+    btnToggleCustomFilter.addEventListener("click", () => {
+      const isOpen = chartSlicerPanel.classList.toggle("active");
+      btnToggleCustomFilter.classList.toggle("active", isOpen);
+    });
+  }
+
+  // Year Chips Filtering
+  const yearChipBtns = document.querySelectorAll(".year-chip-btn");
+  const chartDateFrom = document.getElementById("chart-date-from");
+  const chartDateTo = document.getElementById("chart-date-to");
+  const btnApplyCustomDates = document.getElementById("btn-apply-custom-dates");
+
+  yearChipBtns.forEach(chip => {
+    chip.addEventListener("click", async () => {
+      yearChipBtns.forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+      const year = chip.getAttribute("data-year");
+      const from = `${year}-01-01`;
+      const to = year === "2026" ? "2026-09-04" : `${year}-12-31`;
+
+      if (chartDateFrom) chartDateFrom.value = from;
+      if (chartDateTo) chartDateTo.value = to;
+
+      timeframeBtns.forEach(b => b.classList.remove("active"));
+      if (btnToggleCustomFilter) btnToggleCustomFilter.classList.add("active");
+
+      const data = await GoldManager.fetchHistoryByCustomRange(from, to);
+      renderGoldChart(data);
+    });
+  });
+
+  // Custom Date Range Apply
+  if (btnApplyCustomDates) {
+    btnApplyCustomDates.addEventListener("click", async () => {
+      const from = chartDateFrom ? chartDateFrom.value : "";
+      const to = chartDateTo ? chartDateTo.value : "";
+
+      if (!from || !to) return;
+      if (from > to) {
+        showToast("Ngày bắt đầu phải nhỏ hơn ngày kết thúc!", "fa-triangle-exclamation");
+        return;
+      }
+
+      timeframeBtns.forEach(b => b.classList.remove("active"));
+      if (btnToggleCustomFilter) btnToggleCustomFilter.classList.add("active");
+
+      const data = await GoldManager.fetchHistoryByCustomRange(from, to);
+      renderGoldChart(data);
+    });
+  }
 
   // 6.3. Currency Controller
   const currFromAmount = document.getElementById("currency-from-amount");

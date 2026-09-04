@@ -191,6 +191,22 @@ const GoldManager = (() => {
     return null;
   }
 
+  // Tính toán các chỉ số thống kê (Peak, Low, Change) từ mảng dữ liệu
+  function computeStats(rawHistory) {
+    if (!rawHistory || rawHistory.length === 0) {
+      return { peak: 0, low: 0, changeVal: 0, changePercent: 0 };
+    }
+    const sells = rawHistory.map(h => h.sell);
+    const peak = Math.max(...sells);
+    const low = Math.min(...sells);
+    const firstSell = sells[0];
+    const lastSell = sells[sells.length - 1];
+    const changeVal = parseFloat((lastSell - firstSell).toFixed(2));
+    const changePercent = parseFloat(((changeVal / firstSell) * 100).toFixed(1));
+
+    return { peak, low, changeVal, changePercent };
+  }
+
   // Nạp lịch sử giá vàng từ DataHub-Public theo mốc thời gian ('7d', '30d', '1y', 'all')
   async function fetchHistoryGoldFromDB(timeframe = "7d") {
     const filenameMap = {
@@ -212,7 +228,6 @@ const GoldManager = (() => {
 
           rawHistory.forEach(item => {
             const parts = item.date.split("-");
-            // Định dạng nhãn hiển thị: Nếu là 'all' thì hiện mm/yy hoặc yyyy, còn ngắn ngày thì dd/mm
             let label = `${parseInt(parts[2])}/${parseInt(parts[1])}`;
             if (timeframe === "all") {
               label = `${parts[1]}/${parts[0].slice(2)}`;
@@ -224,7 +239,8 @@ const GoldManager = (() => {
             sellData.push(item.sell);
           });
 
-          return { labels, buyData, sellData };
+          const stats = computeStats(rawHistory);
+          return { labels, buyData, sellData, stats };
         }
       } catch (e) {
         console.warn(`[GoldManager] Khong the tai history ${timeframe} tu DataHub:`, e);
@@ -233,7 +249,55 @@ const GoldManager = (() => {
 
     // Fallback mô phỏng nếu không có mạng
     const daysMap = { "7d": 7, "30d": 30, "1y": 365, "all": 1800 };
-    return generateHistoricalData(daysMap[timeframe] || 7);
+    const simulated = generateHistoricalData(daysMap[timeframe] || 7);
+    const mockHistory = simulated.sellData.map((s, idx) => ({ sell: s, buy: simulated.buyData[idx] }));
+    return { ...simulated, stats: computeStats(mockHistory) };
+  }
+
+  // Lọc lịch sử theo khoảng ngày tùy chọn (Date Range Slicer)
+  async function fetchHistoryByCustomRange(fromDateStr, toDateStr) {
+    let allHistory = [];
+    if (typeof DataHub !== 'undefined' && DataHub.getPublicData) {
+      try {
+        allHistory = await DataHub.getPublicData("market/history/gold-history-all.json");
+      } catch (e) {
+        console.warn("Loi tai gold-history-all:", e);
+      }
+    }
+
+    if (!allHistory || allHistory.length === 0) {
+      const fallback = await fetchHistoryGoldFromDB("all");
+      return fallback;
+    }
+
+    // Lọc theo date range: YYYY-MM-DD
+    const filtered = allHistory.filter(item => {
+      if (fromDateStr && item.date < fromDateStr) return false;
+      if (toDateStr && item.date > toDateStr) return false;
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      return { labels: [], buyData: [], sellData: [], stats: { peak: 0, low: 0, changeVal: 0, changePercent: 0 } };
+    }
+
+    const labels = [];
+    const buyData = [];
+    const sellData = [];
+
+    filtered.forEach(item => {
+      const parts = item.date.split("-");
+      // Nếu lọc trong cùng 1 năm thì hiện dd/mm, nếu nhiều năm thì hiện mm/yy
+      const label = (fromDateStr && toDateStr && fromDateStr.slice(0, 4) === toDateStr.slice(0, 4))
+        ? `${parseInt(parts[2])}/${parseInt(parts[1])}`
+        : `${parts[1]}/${parts[0].slice(2)}`;
+      labels.push(label);
+      buyData.push(item.buy);
+      sellData.push(item.sell);
+    });
+
+    const stats = computeStats(filtered);
+    return { labels, buyData, sellData, stats };
   }
 
   return {
@@ -241,6 +305,8 @@ const GoldManager = (() => {
     generateHistoricalData,
     fetchLatestGoldFromDB,
     fetchHistoryGoldFromDB,
+    fetchHistoryByCustomRange,
+    computeStats,
     calculateGoldMoney,
     formatVnd
   };
