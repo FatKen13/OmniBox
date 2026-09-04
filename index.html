@@ -21,7 +21,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   
   <!-- App Style -->
-  <link rel="stylesheet" href="style.css?v=9.0">
+  <link rel="stylesheet" href="style.css?v=10.0">
 
   <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -218,13 +218,29 @@
               </div>
             </form>
 
-            <!-- Quick Festival Links -->
+            <!-- Tra Cứu Lễ Tết Đa Năng & Tự Động Theo Năm -->
             <div class="quick-festivals-row">
-              <span class="quick-label"><i class="fa-solid fa-bolt"></i> Tra nhanh:</span>
-              <button class="festival-chip" data-lunar="1-1-2026">🧧 Mùng 1 Tết 2026</button>
-              <button class="festival-chip" data-lunar="15-1-2026">🌕 Rằm tháng Giêng</button>
-              <button class="festival-chip" data-lunar="10-3-2026">👑 Giỗ Tổ Hùng Vương</button>
-              <button class="festival-chip" data-lunar="15-8-2026">🥮 Tết Trung Thu</button>
+              <div class="festivals-header-row">
+                <span class="quick-label"><i class="fa-solid fa-gift" style="color: #ef4444;"></i> Tra Cứu Ngày Lễ:</span>
+                <div class="festival-year-picker-wrapper">
+                  <label for="quick-festival-year-select">Năm:</label>
+                  <select id="quick-festival-year-select" class="festival-year-dropdown"></select>
+                </div>
+              </div>
+
+              <!-- Popular Dynamic Festival Chips -->
+              <div class="festival-chips-container" id="festival-chips-container">
+                <!-- Javascript dynamically renders chips for the selected year -->
+              </div>
+
+              <!-- Full Festival Dropdown -->
+              <div class="festival-dropdown-wrapper">
+                <select id="festival-full-dropdown" class="festival-full-dropdown">
+                  <option value="">-- Hoặc chọn từ danh sách đầy đủ tất cả ngày lễ --</option>
+                  <optgroup label="🧧 Lễ Tết & Sự Kiện Âm Lịch" id="optgroup-lunar-festivals"></optgroup>
+                  <optgroup label="🇻🇳 Ngày Lễ & Kỷ Niệm Dương Lịch" id="optgroup-solar-festivals"></optgroup>
+                </select>
+              </div>
             </div>
           </div>
 

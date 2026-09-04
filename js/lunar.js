@@ -463,6 +463,7 @@ const LunarCalendar = (() => {
     convertLunar2Solar,
     getFullDayInfo,
     getMonthMatrix,
+    LE_TET,
     CAN,
     CHI,
     CON_GIAP,

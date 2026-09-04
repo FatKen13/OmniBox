@@ -337,30 +337,168 @@ document.addEventListener("DOMContentLoaded", () => {
     showToast(`Âm lịch ${lDay}/${lMonth}/${lYear} ➔ Dương lịch ${solarRes.day}/${solarRes.month}/${solarRes.year}!`, "fa-moon");
   });
 
-  // Nút tra nhanh Lễ / Tết
-  document.querySelectorAll(".festival-chip").forEach(chip => {
-    chip.addEventListener("click", () => {
-      const raw = chip.getAttribute("data-lunar");
-      if (!raw) return;
-      const [lDay, lMonth, lYear] = raw.split("-").map(Number);
-      
-      const solarRes = LunarCalendar.convertLunar2Solar(lDay, lMonth, lYear, 0, 7);
-      if (solarRes) {
-        state.currentDate = new Date(solarRes.year, solarRes.month - 1, solarRes.day);
+  // ==========================================
+  // Dynamic Multi-Year Festival Explorer
+  // ==========================================
+  const quickFestivalYearSelect = document.getElementById("quick-festival-year-select");
+  const festivalChipsContainer = document.getElementById("festival-chips-container");
+  const festivalFullDropdown = document.getElementById("festival-full-dropdown");
+  const optgroupLunar = document.getElementById("optgroup-lunar-festivals");
+  const optgroupSolar = document.getElementById("optgroup-solar-festivals");
+
+  const POPULAR_FESTIVALS = [
+    { type: "lunar", day: 1, month: 1, name: "Mùng 1 Tết", icon: "🧧" },
+    { type: "lunar", day: 15, month: 1, name: "Rằm Tháng Giêng", icon: "🌕" },
+    { type: "lunar", day: 3, month: 3, name: "Tết Hàn Thực", icon: "🍡" },
+    { type: "lunar", day: 10, month: 3, name: "Giỗ Tổ Hùng Vương", icon: "👑" },
+    { type: "lunar", day: 15, month: 4, name: "Lễ Phật Đản", icon: "🪷" },
+    { type: "lunar", day: 5, month: 5, name: "Tết Đoan Ngọ", icon: "🎋" },
+    { type: "lunar", day: 15, month: 7, name: "Lễ Vu Lan", icon: "🏮" },
+    { type: "lunar", day: 15, month: 8, name: "Tết Trung Thu", icon: "🥮" },
+    { type: "solar", day: 30, month: 4, name: "30/4 Giải Phóng", icon: "⭐" },
+    { type: "solar", day: 2, month: 9, name: "2/9 Quốc Khánh", icon: "🇻🇳" },
+    { type: "solar", day: 24, month: 12, name: "Giáng Sinh", icon: "🎄" }
+  ];
+
+  function calculateCountdown(targetDate) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(targetDate);
+    target.setHours(0, 0, 0, 0);
+
+    const diffTime = target.getTime() - today.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return "Hôm nay";
+    if (diffDays > 0) return `Còn ${diffDays} ngày nữa`;
+    return `Đã qua ${Math.abs(diffDays)} ngày`;
+  }
+
+  function renderFestivalExplorer(year) {
+    if (!festivalChipsContainer) return;
+    festivalChipsContainer.innerHTML = "";
+
+    POPULAR_FESTIVALS.forEach(fest => {
+      let solarDate;
+      if (fest.type === "lunar") {
+        const res = LunarCalendar.convertLunar2Solar(fest.day, fest.month, year, 0, 7);
+        if (res) solarDate = new Date(res.year, res.month - 1, res.day);
+      } else {
+        solarDate = new Date(year, fest.month - 1, fest.day);
+      }
+
+      if (!solarDate) return;
+
+      const countdown = calculateCountdown(solarDate);
+      const btn = document.createElement("button");
+      btn.className = "festival-chip";
+      btn.innerHTML = `${fest.icon} ${fest.name} <span class="festival-chip-date">(${solarDate.getDate()}/${solarDate.getMonth() + 1})</span>`;
+      btn.title = `${fest.name} năm ${year} rơi vào ${solarDate.getDate()}/${solarDate.getMonth() + 1}/${solarDate.getFullYear()} (${countdown})`;
+
+      btn.addEventListener("click", () => {
+        state.currentDate = new Date(solarDate);
         state.viewMonthDate = new Date(state.currentDate);
 
         renderBlocCalendar(state.currentDate);
         renderMonthMatrix(state.viewMonthDate.getFullYear(), state.viewMonthDate.getMonth() + 1);
 
-        const yyyy = solarRes.year;
-        const mm = String(solarRes.month).padStart(2, "0");
-        const dd = String(solarRes.day).padStart(2, "0");
-        solarPickDate.value = `${yyyy}-${mm}-${dd}`;
+        const yyyy = solarDate.getFullYear();
+        const mm = String(solarDate.getMonth() + 1).padStart(2, "0");
+        const dd = String(solarDate.getDate()).padStart(2, "0");
+        if (solarPickDate) solarPickDate.value = `${yyyy}-${mm}-${dd}`;
 
-        showToast(`Đã mở ${chip.textContent.trim()} (${solarRes.day}/${solarRes.month}/${solarRes.year})!`, "fa-gift");
+        showToast(`${fest.icon} ${fest.name} (${dd}/${mm}/${yyyy}) • ${countdown}!`, "fa-gift");
+      });
+
+      festivalChipsContainer.appendChild(btn);
+    });
+  }
+
+  function populateFullFestivalDropdown(year) {
+    if (!optgroupLunar || !optgroupSolar || !LunarCalendar.LE_TET) return;
+    optgroupLunar.innerHTML = "";
+    optgroupSolar.innerHTML = "";
+
+    // Lunar festivals
+    Object.entries(LunarCalendar.LE_TET.lunar).forEach(([key, name]) => {
+      const [lDay, lMonth] = key.split("-").map(Number);
+      const res = LunarCalendar.convertLunar2Solar(lDay, lMonth, year, 0, 7);
+      if (res) {
+        const opt = document.createElement("option");
+        opt.value = `lunar_${lDay}_${lMonth}_${year}`;
+        opt.textContent = `🧧 ${name} (${lDay}/${lMonth} ÂL ➔ ${res.day}/${res.month}/${res.year})`;
+        optgroupLunar.appendChild(opt);
       }
     });
-  });
+
+    // Solar festivals
+    Object.entries(LunarCalendar.LE_TET.solar).forEach(([key, name]) => {
+      const [sDay, sMonth] = key.split("-").map(Number);
+      const opt = document.createElement("option");
+      opt.value = `solar_${sDay}_${sMonth}_${year}`;
+      opt.textContent = `🇻🇳 ${name} (${sDay}/${sMonth}/${year})`;
+      optgroupSolar.appendChild(opt);
+    });
+  }
+
+  function initFestivalExplorer() {
+    if (!quickFestivalYearSelect) return;
+    quickFestivalYearSelect.innerHTML = "";
+    const curYear = new Date().getFullYear();
+
+    for (let y = 2020; y <= 2035; y++) {
+      const opt = document.createElement("option");
+      opt.value = y;
+      opt.textContent = `Năm ${y}`;
+      if (y === curYear) opt.selected = true;
+      quickFestivalYearSelect.appendChild(opt);
+    }
+
+    quickFestivalYearSelect.addEventListener("change", () => {
+      const selectedYear = parseInt(quickFestivalYearSelect.value, 10);
+      renderFestivalExplorer(selectedYear);
+      populateFullFestivalDropdown(selectedYear);
+    });
+
+    populateFullFestivalDropdown(curYear);
+    renderFestivalExplorer(curYear);
+
+    if (festivalFullDropdown) {
+      festivalFullDropdown.addEventListener("change", () => {
+        const val = festivalFullDropdown.value;
+        if (!val) return;
+        const [type, d, m, y] = val.split("_");
+        const day = Number(d), month = Number(m), yr = Number(y);
+
+        let targetDate;
+        if (type === "lunar") {
+          const res = LunarCalendar.convertLunar2Solar(day, month, yr, 0, 7);
+          if (res) targetDate = new Date(res.year, res.month - 1, res.day);
+        } else {
+          targetDate = new Date(yr, month - 1, day);
+        }
+
+        if (targetDate) {
+          state.currentDate = new Date(targetDate);
+          state.viewMonthDate = new Date(state.currentDate);
+
+          renderBlocCalendar(state.currentDate);
+          renderMonthMatrix(state.viewMonthDate.getFullYear(), state.viewMonthDate.getMonth() + 1);
+
+          const yyyy = targetDate.getFullYear();
+          const mm = String(targetDate.getMonth() + 1).padStart(2, "0");
+          const dd = String(targetDate.getDate()).padStart(2, "0");
+          if (solarPickDate) solarPickDate.value = `${yyyy}-${mm}-${dd}`;
+
+          const countdown = calculateCountdown(targetDate);
+          showToast(`Đã mở sự kiện: ${dd}/${mm}/${yyyy} (${countdown})!`, "fa-gift");
+        }
+        festivalFullDropdown.value = "";
+      });
+    }
+  }
+
+  initFestivalExplorer();
 
   /* ==========================================================================
      5. TAB 2: ĐỔI ĐƠN VỊ CONTROLLER
