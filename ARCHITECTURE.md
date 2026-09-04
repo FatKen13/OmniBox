@@ -239,60 +239,60 @@ jobs:
 
 ---
 
-## 🔒 7. KIẾN TRÚC 2 KHO GITHUB: PUBLIC DATAHUB & PRIVATE PERSONAL VAULT
+## 🔒 7. HỆ THỐNG DATAHUB ĐỒNG NHẤT: DATAHUB-PUBLIC & DATAHUB-PRIVATE
 
-Hệ thống phân định 2 kho dữ liệu riêng biệt trên tài khoản GitHub của bạn:
+Để đảm bảo tính nhất quán tuyệt đối về cấu trúc và quy chuẩn đặt tên trên toàn hệ thống GitHub của bạn, toàn bộ dữ liệu được chuẩn hóa dưới một thương hiệu duy nhất là **DataHub** với 2 phân vùng:
 
 ```mermaid
 graph TD
-    subgraph RepoPublic[🌐 REPO 1: FatKen13/DataHub (PUBLIC)]
-        D1[api/v1/gold/latest.json<br>Giá Vàng SJC, 9999]
-        D2[api/v1/exchange/latest.json<br>Tỷ Giá Ngoại Tệ VCB]
-        D3[api/v1/petrol/latest.json<br>Giá Xăng Dầu]
+    subgraph HubPublic[🌐 REPO: FatKen13/DataHub-Public (PUBLIC)]
+        D1[api/v1/market/gold.json<br>Giá Vàng SJC, DOJI, 9999]
+        D2[api/v1/market/exchange.json<br>Tỷ Giá Ngoại Tệ VCB]
+        D3[api/v1/market/petrol.json<br>Giá Xăng Dầu]
     end
 
-    subgraph RepoPrivate[🔒 REPO 2: FatKen13/my-vault (PRIVATE)]
-        P1[finance/expenses.json<br>Sổ Thu - Chi Hàng Ngày]
-        P2[finance/budgets.json<br>Hạn Mức Chi Tiêu Tháng]
-        P3[finance/savings.json<br>Tích Lũy Vàng, Tiết Kiệm]
-        P4[reminders/lunar-events.json<br>Sổ Giỗ Chạp, Sinh Nhật Âm]
+    subgraph HubPrivate[🔒 REPO: FatKen13/DataHub-Private (PRIVATE)]
+        P1[api/v1/personal/expenses.json<br>Sổ Thu - Chi Hàng Ngày]
+        P2[api/v1/personal/budgets.json<br>Hạn Mức Chi Tiêu Tháng]
+        P3[api/v1/personal/savings.json<br>Sổ Tích Lũy Vàng, Tiết Kiệm]
+        P4[api/v1/personal/reminders.json<br>Sổ Giỗ Chạp, Sinh Nhật Âm]
     end
 
-    RepoPublic -->|GET Miễn phí không cần Token| Apps[📱 OmniBox & Các App Khác]
-    Apps <-->|Đọc / Ghi bảo mật qua GitHub PAT| RepoPrivate
+    HubPublic -->|GET Công khai qua GitHub Pages / CDN| Apps[📱 OmniBox & Các Dự Án Vệ Tinh]
+    Apps <-->|Đọc / Ghi bảo mật qua GitHub PAT| HubPrivate
 ```
 
 ---
 
-### A. Cấu trúc Kho Dữ Liệu Cá Nhân Riêng Tư (`FatKen13/my-vault` - Chế độ PRIVATE)
+### A. So sánh Cấu Trúc Thư Mục Đồng Nhất (100% Matching Structure)
 
-```text
-my-vault/ (Chế độ PRIVATE - Chỉ tài khoản của bạn xem được)
-├── README.md
-├── finance/
-│   ├── expenses.json        # Danh sách các giao dịch Thu / Chi
-│   ├── categories.json      # Danh mục (Ăn uống, Tiền nhà, Mua sắm, Lương...)
-│   ├── budgets.json         # Ngân sách giới hạn chi tiêu từng tháng
-│   └── savings.json         # Sổ theo dõi tài sản, vàng tích lũy, sổ tiết kiệm
-├── reminders/
-│   └── lunar-events.json    # Danh sách ngày giỗ, sinh nhật âm lịch gia đình
-└── notes/
-    └── secure-notes.json    # Ghi chú tài chính cá nhân
-```
+Cả hai repo đều dùng chung chuẩn kiến trúc thư mục `api/v1/`:
+
+| 🌐 `DataHub-Public` (Chế độ Public) | 🔒 `DataHub-Private` (Chế độ Private) |
+| :--- | :--- |
+| **`DataHub-Public/`** | **`DataHub-Private/`** |
+| ├── `.github/workflows/cron.yml` | ├── `.github/workflows/backup.yml` |
+| ├── `scripts/crawl_market.py` | ├── `scripts/clean_data.py` (tùy chọn) |
+| └── `api/v1/` | └── `api/v1/` |
+| &nbsp;&nbsp;&nbsp;&nbsp;└── `market/` | &nbsp;&nbsp;&nbsp;&nbsp;└── `personal/` |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── `gold.json` (Giá vàng) | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── `expenses.json` (Thu chi) |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── `exchange.json` (Ngoại tệ) | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── `budgets.json` (Ngân sách) |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── `petrol.json` (Xăng dầu) | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── `savings.json` (Tích lũy tài sản/vàng) |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── `history/` (Lịch sử các ngày) | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── `reminders.json` (Lịch giỗ, sinh nhật âm) |
 
 ---
 
-### B. Mẫu Schema Dữ Liệu Thu - Chi Cá Nhân (`finance/expenses.json`)
+### B. Mẫu Schema Dữ Liệu Cá Nhân Chuẩn (`api/v1/personal/expenses.json`)
 
 ```json
 {
-  "currency": "VND",
   "updatedAt": "2026-09-04T15:45:00+07:00",
+  "currency": "VND",
   "transactions": [
     {
       "id": "tx_1788508800000",
       "date": "2026-09-04",
-      "type": "expense", 
+      "type": "expense",
       "category": "Ăn uống",
       "amount": 55000,
       "note": "Ăn trưa cơm văn phòng",
@@ -313,7 +313,7 @@ my-vault/ (Chế độ PRIVATE - Chỉ tài khoản của bạn xem được)
 
 ---
 
-### C. Mẫu Schema Sổ Tích Lũy Vàng & Tài Sản (`finance/savings.json`)
+### C. Mẫu Schema Sổ Tích Lũy Vàng & Tiết Kiệm (`api/v1/personal/savings.json`)
 
 ```json
 {
@@ -343,50 +343,58 @@ my-vault/ (Chế độ PRIVATE - Chỉ tài khoản của bạn xem được)
 
 ---
 
-### D. Cơ Chế Đọc / Ghi Từ Client Lên Private Repo (Code Mẫu JavaScript)
+### D. Module JavaScript Đồng Bộ Chuẩn Cho Mọi Dự Án (`js/datahub-sync.js`)
 
-Ứng dụng client (OmniBox) lưu **GitHub Token (PAT)** trong `localStorage` của trình duyệt cá nhân bạn để thực hiện đọc/ghi dữ liệu bí mật:
+Mỗi dự án mới chỉ cần copy file `js/datahub-sync.js` này vào là có thể vừa đọc dữ liệu công khai, vừa đọc/ghi dữ liệu cá nhân một cách đồng nhất:
 
 ```javascript
-// js/vault.js - Quản lý đồng bộ kho riêng tư
-const VaultManager = {
+// js/datahub-sync.js - Module kết nối DataHub đồng nhất
+const DataHub = {
   OWNER: 'FatKen13',
-  REPO: 'my-vault',
-  
-  getToken() {
-    return localStorage.getItem('omnibox_github_pat') || '';
+  PUBLIC_REPO: 'DataHub-Public',
+  PRIVATE_REPO: 'DataHub-Private',
+
+  // 1. Đọc dữ liệu công khai (Không cần Token)
+  async getPublicData(endpoint) {
+    // endpoint ví dụ: "market/gold.json"
+    const url = `https://raw.githubusercontent.com/${this.OWNER}/${this.PUBLIC_REPO}/main/api/v1/${endpoint}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Lỗi tải Public Data: ${res.statusText}`);
+    return await res.json();
   },
 
-  // 1. Đọc dữ liệu từ Repo Private
-  async readData(filePath) {
-    const token = this.getToken();
-    if (!token) throw new Error('Chưa cấu hình GitHub Token!');
+  // 2. Đọc dữ liệu cá nhân riêng tư (Yêu cầu GitHub PAT)
+  async getPrivateData(endpoint) {
+    // endpoint ví dụ: "personal/expenses.json"
+    const token = localStorage.getItem('datahub_pat');
+    if (!token) throw new Error('Cần cấu hình GitHub Personal Access Token');
 
-    const res = await fetch(`https://api.github.com/repos/${this.OWNER}/${this.REPO}/contents/${filePath}`, {
+    const url = `https://api.github.com/repos/${this.OWNER}/${this.PRIVATE_REPO}/contents/api/v1/${endpoint}`;
+    const res = await fetch(url, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/vnd.github.v3+json'
       }
     });
-    
-    if (!res.ok) throw new Error(`Lỗi đọc dữ liệu: ${res.statusText}`);
+    if (!res.ok) throw new Error(`Lỗi tải Private Data: ${res.statusText}`);
     const data = await res.json();
     const content = decodeURIComponent(escape(atob(data.content)));
     return { content: JSON.parse(content), sha: data.sha };
   },
 
-  // 2. Ghi / Cập nhật dữ liệu vào Repo Private
-  async writeData(filePath, newContentObj, sha = null) {
-    const token = this.getToken();
+  // 3. Ghi dữ liệu cá nhân riêng tư lên GitHub
+  async savePrivateData(endpoint, newContentObj, sha = null) {
+    const token = localStorage.getItem('datahub_pat');
+    const url = `https://api.github.com/repos/${this.OWNER}/${this.PRIVATE_REPO}/contents/api/v1/${endpoint}`;
     const encodedContent = btoa(unescape(encodeURIComponent(JSON.stringify(newContentObj, null, 2))));
 
     const payload = {
-      message: `update: ${filePath} at ${new Date().toISOString()}`,
+      message: `update(data): ${endpoint} at ${new Date().toISOString()}`,
       content: encodedContent
     };
     if (sha) payload.sha = sha;
 
-    const res = await fetch(`https://api.github.com/repos/${this.OWNER}/${this.REPO}/contents/${filePath}`, {
+    const res = await fetch(url, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -394,9 +402,9 @@ const VaultManager = {
       },
       body: JSON.stringify(payload)
     });
-
     return await res.json();
   }
 };
 ```
+
 
