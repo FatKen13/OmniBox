@@ -42,6 +42,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("theme_pref", theme);
     state.theme = theme;
+    const metaTheme = document.getElementById("meta-theme-color");
+    if (metaTheme) {
+      metaTheme.setAttribute("content", theme === "dark" ? "#0b1329" : "#f8fafc");
+    }
     if (themeToggleBtn) {
       themeToggleBtn.innerHTML = theme === "dark" 
         ? '<i class="fa-solid fa-sun" style="color: #f59e0b;"></i>' 

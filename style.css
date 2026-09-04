@@ -129,7 +129,7 @@ body {
 .blob-2 {
   width: 400px;
   height: 400px;
-  background: #ec4899;
+  background: #1d4ed8;
   bottom: -100px;
   left: -50px;
   animation-delay: -5s;
@@ -138,7 +138,7 @@ body {
 .blob-3 {
   width: 350px;
   height: 350px;
-  background: #10b981;
+  background: #0284c7;
   top: 40%;
   left: 30%;
   animation-delay: -10s;
