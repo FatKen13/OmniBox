@@ -387,38 +387,41 @@ body {
 .calendar-layout {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.5rem;
+  gap: 1rem;
+  width: 100%;
 }
 
 @media (min-width: 992px) {
   .calendar-layout {
-    grid-template-columns: 400px 1fr;
+    grid-template-columns: 360px 1fr;
+    gap: 1.25rem;
   }
 }
 
 /* Bloc Tờ Lịch */
 .bloc-card {
   background: var(--bg-secondary);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border-color);
   box-shadow: var(--card-shadow);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   position: relative;
+  width: 100%;
 }
 
 .bloc-header {
   background: var(--accent-calendar);
   color: #ffffff;
-  padding: 1.25rem 1.5rem;
+  padding: 0.85rem 1rem;
   text-align: center;
   position: relative;
 }
 
 .bloc-header .solar-month-year {
   font-family: 'Outfit', sans-serif;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -426,13 +429,13 @@ body {
 }
 
 .bloc-header .solar-day-name {
-  font-size: 1.6rem;
+  font-size: 1.35rem;
   font-weight: 800;
   margin-top: 0.1rem;
 }
 
 .bloc-body {
-  padding: 1.75rem 1.5rem 1.25rem;
+  padding: 1rem 0.85rem;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -441,34 +444,40 @@ body {
 
 .solar-big-day {
   font-family: 'Outfit', sans-serif;
-  font-size: 6.5rem;
+  font-size: 4.2rem;
   font-weight: 800;
   line-height: 1;
   color: var(--text-main);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
   letter-spacing: -0.04em;
+}
+
+@media (min-width: 768px) {
+  .solar-big-day {
+    font-size: 5.5rem;
+  }
 }
 
 .lunar-badge-box {
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
-  padding: 0.65rem 1.25rem;
-  border-radius: var(--radius-lg);
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-md);
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
+  gap: 0.6rem;
+  margin-bottom: 0.85rem;
 }
 
 .lunar-badge-box .lunar-big {
-  font-size: 1.75rem;
+  font-size: 1.35rem;
   font-weight: 800;
   color: #ef4444;
 }
 
 .lunar-badge-box .lunar-text {
   text-align: left;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--text-muted);
 }
@@ -484,9 +493,9 @@ body {
   width: 100%;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
-  padding: 0.75rem 0;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+  padding: 0.5rem 0;
   border-top: 1px dashed var(--border-color);
   border-bottom: 1px dashed var(--border-color);
 }
@@ -496,13 +505,13 @@ body {
 }
 
 .canchi-item .label {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
   text-transform: uppercase;
 }
 
 .canchi-item .val {
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   font-weight: 700;
   color: var(--text-main);
 }
@@ -512,17 +521,17 @@ body {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   width: 100%;
 }
 
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  font-size: 0.8rem;
+  gap: 0.3rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  padding: 0.35rem 0.75rem;
+  padding: 0.28rem 0.6rem;
   border-radius: var(--radius-full);
 }
 
@@ -546,44 +555,45 @@ body {
 
 /* Holiday Banner */
 .holiday-alert {
-  margin-top: 1rem;
+  margin-top: 0.75rem;
   width: 100%;
   background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(249, 115, 22, 0.1));
   border: 1px solid rgba(239, 68, 68, 0.3);
   color: #dc2626;
-  padding: 0.6rem 1rem;
+  padding: 0.45rem 0.75rem;
   border-radius: var(--radius-md);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   justify-content: center;
 }
 
 /* Bloc Footer Controls */
 .bloc-footer {
-  padding: 0.85rem 1.25rem;
+  padding: 0.65rem 0.85rem;
   background: var(--bg-tertiary);
   border-top: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.35rem;
 }
 
 .btn-ctrl {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   color: var(--text-main);
-  padding: 0.45rem 0.85rem;
+  padding: 0.4rem 0.65rem;
   border-radius: var(--radius-md);
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.3rem;
   transition: all var(--transition-fast);
 }
 
@@ -596,43 +606,65 @@ body {
 .calendar-right-col {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
+  width: 100%;
 }
 
 /* Month Matrix Card */
 .month-calendar-card {
   background: var(--bg-secondary);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border-color);
   box-shadow: var(--card-shadow);
-  padding: 1.5rem;
+  padding: 0.85rem 0.75rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .month-calendar-card {
+    padding: 1.25rem;
+  }
 }
 
 .month-nav-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.25rem;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .month-title {
   font-family: 'Outfit', sans-serif;
-  font-size: 1.35rem;
+  font-size: 1.1rem;
   font-weight: 700;
 }
 
 .month-nav-btns {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 /* Days Matrix Table */
 .days-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 0.4rem;
+  gap: 0.25rem;
   text-align: center;
+  width: 100%;
+}
+
+.day-header {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 0.25rem 0;
+  text-transform: uppercase;
+}
+
+.day-header.weekend {
+  color: #ef4444;
 }
 
 /* Date Search Component */
@@ -797,10 +829,10 @@ body {
 }
 
 .day-header {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 700;
   color: var(--text-muted);
-  padding: 0.5rem 0;
+  padding: 0.2rem 0;
   text-transform: uppercase;
 }
 
@@ -810,10 +842,10 @@ body {
 
 .day-cell {
   aspect-ratio: 1;
-  min-height: 48px;
+  min-height: 38px;
   background: var(--bg-tertiary);
   border: 1px solid transparent;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -821,23 +853,23 @@ body {
   cursor: pointer;
   transition: all var(--transition-fast);
   position: relative;
+  padding: 1px 0;
 }
 
 .day-cell:hover {
   border-color: var(--accent-primary);
   background: var(--bg-secondary);
-  transform: translateY(-2px);
-  box-shadow: var(--card-shadow);
+  transform: translateY(-1px);
 }
 
 .day-cell.other-month {
-  opacity: 0.35;
+  opacity: 0.3;
 }
 
 .day-cell.selected {
   background: var(--accent-primary) !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.35);
 }
 
 .day-cell.selected .solar-num,
