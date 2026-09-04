@@ -239,42 +239,164 @@ jobs:
 
 ---
 
-## 🔒 7. PHÂN TÁCH DỮ LIỆU: PUBLIC HUB vs PRIVATE VAULT
+## 🔒 7. KIẾN TRÚC 2 KHO GITHUB: PUBLIC DATAHUB & PRIVATE PERSONAL VAULT
 
-Khi phát triển các tính năng có tính chất **nhạy cảm / riêng tư** (như Quản lý Thu - Chi cá nhân, Sổ nợ, Ghi chú tài chính, Danh bạ...), hệ thống phải tuân thủ nguyên tắc phân vùng rõ ràng:
+Hệ thống phân định 2 kho dữ liệu riêng biệt trên tài khoản GitHub của bạn:
 
 ```mermaid
 graph TD
-    subgraph Public[🌐 PUBLIC DATA HUB (Không bảo mật - Dùng chung)]
-        G[Giá Vàng / Ngoại Tệ / Giá Xăng / Lịch Âm] --> DataHub[Public Repo: DataHub]
-        DataHub --> CDN[GitHub Pages / Raw CDN]
+    subgraph RepoPublic[🌐 REPO 1: FatKen13/DataHub (PUBLIC)]
+        D1[api/v1/gold/latest.json<br>Giá Vàng SJC, 9999]
+        D2[api/v1/exchange/latest.json<br>Tỷ Giá Ngoại Tệ VCB]
+        D3[api/v1/petrol/latest.json<br>Giá Xăng Dầu]
     end
 
-    subgraph Private[🔒 PRIVATE DATA VAULT (Bảo mật 100% - Riêng tư)]
-        T[Sổ Thu - Chi / Tiết kiệm / Nhật ký] --> Method1[Cách 1: Local-First / IndexedDB trên máy]
-        T --> Method2[Cách 2: Private GitHub Repo riêng biệt]
-        T --> Method3[Cách 3: Private Google Sheets / Supabase Auth]
+    subgraph RepoPrivate[🔒 REPO 2: FatKen13/my-vault (PRIVATE)]
+        P1[finance/expenses.json<br>Sổ Thu - Chi Hàng Ngày]
+        P2[finance/budgets.json<br>Hạn Mức Chi Tiêu Tháng]
+        P3[finance/savings.json<br>Tích Lũy Vàng, Tiết Kiệm]
+        P4[reminders/lunar-events.json<br>Sổ Giỗ Chạp, Sinh Nhật Âm]
     end
 
-    CDN --> OmniBox[📱 OmniBox & Các App]
-    Method1 --> OmniBox
-    Method2 --> OmniBox
-    Method3 --> OmniBox
+    RepoPublic -->|GET Miễn phí không cần Token| Apps[📱 OmniBox & Các App Khác]
+    Apps <-->|Đọc / Ghi bảo mật qua GitHub PAT| RepoPrivate
 ```
 
-### 3 Giải pháp lưu trữ Dữ liệu Thu Chi Cá Nhân an toàn nhất:
+---
 
-1. **Cách 1: Local-First (Lưu trực tiếp trên thiết bị - Khuyên dùng số 1)**
-   - Lưu trữ qua `IndexedDB` hoặc `LocalStorage` trên trình duyệt/điện thoại.
-   - **Ưu điểm**: 100% bảo mật vì dữ liệu không bao giờ rời khỏi máy của bạn, chạy Offline hoàn toàn, không tốn chi phí.
-   - **Tính năng cần có**: Thêm nút *"Xuất File Sao Lưu (Backup JSON)"* và *"Khôi Phục Dữ Liệu (Restore)"* để dễ dàng chuyển sang máy khác.
+### A. Cấu trúc Kho Dữ Liệu Cá Nhân Riêng Tư (`FatKen13/my-vault` - Chế độ PRIVATE)
 
-2. **Cách 2: Đồng bộ lên Private GitHub Repository (Riêng tư)**
-   - Tạo 1 repo chế độ **Private** (ví dụ: `FatKen13/my-vault`).
-   - Ứng dụng client gọi GitHub API với Token cá nhân (Personal Access Token - PAT) của bạn.
-   - Có thể mã hóa AES dữ liệu bằng Master Password trên trình duyệt trước khi đẩy lên GitHub.
+```text
+my-vault/ (Chế độ PRIVATE - Chỉ tài khoản của bạn xem được)
+├── README.md
+├── finance/
+│   ├── expenses.json        # Danh sách các giao dịch Thu / Chi
+│   ├── categories.json      # Danh mục (Ăn uống, Tiền nhà, Mua sắm, Lương...)
+│   ├── budgets.json         # Ngân sách giới hạn chi tiêu từng tháng
+│   └── savings.json         # Sổ theo dõi tài sản, vàng tích lũy, sổ tiết kiệm
+├── reminders/
+│   └── lunar-events.json    # Danh sách ngày giỗ, sinh nhật âm lịch gia đình
+└── notes/
+    └── secure-notes.json    # Ghi chú tài chính cá nhân
+```
 
-3. **Cách 3: Google Sheets Private qua Apps Script Webhook**
-   - Tạo 1 Google Sheet cá nhân và tạo 1 Apps Script Webhook riêng tư làm backend.
-   - Mọi khoản thu chi được ghi thẳng vào bảng tính Excel/Google Sheets của riêng bạn.
+---
+
+### B. Mẫu Schema Dữ Liệu Thu - Chi Cá Nhân (`finance/expenses.json`)
+
+```json
+{
+  "currency": "VND",
+  "updatedAt": "2026-09-04T15:45:00+07:00",
+  "transactions": [
+    {
+      "id": "tx_1788508800000",
+      "date": "2026-09-04",
+      "type": "expense", 
+      "category": "Ăn uống",
+      "amount": 55000,
+      "note": "Ăn trưa cơm văn phòng",
+      "paymentMethod": "Vietcombank"
+    },
+    {
+      "id": "tx_1788508900000",
+      "date": "2026-09-01",
+      "type": "income",
+      "category": "Lương",
+      "amount": 30000000,
+      "note": "Lương tháng 8/2026",
+      "paymentMethod": "Techcombank"
+    }
+  ]
+}
+```
+
+---
+
+### C. Mẫu Schema Sổ Tích Lũy Vàng & Tài Sản (`finance/savings.json`)
+
+```json
+{
+  "updatedAt": "2026-09-04T15:45:00+07:00",
+  "goldHoldings": [
+    {
+      "id": "gold_1",
+      "buyDate": "2025-05-10",
+      "type": "SJC",
+      "quantityChi": 20,
+      "buyPricePerChi": 11.50,
+      "note": "Mua tại SJC Nguyễn Thị Minh Khai"
+    }
+  ],
+  "savingsAccounts": [
+    {
+      "id": "sav_1",
+      "bank": "Vietcombank",
+      "amount": 100000000,
+      "interestRate": 5.5,
+      "termMonths": 12,
+      "startDate": "2026-01-15"
+    }
+  ]
+}
+```
+
+---
+
+### D. Cơ Chế Đọc / Ghi Từ Client Lên Private Repo (Code Mẫu JavaScript)
+
+Ứng dụng client (OmniBox) lưu **GitHub Token (PAT)** trong `localStorage` của trình duyệt cá nhân bạn để thực hiện đọc/ghi dữ liệu bí mật:
+
+```javascript
+// js/vault.js - Quản lý đồng bộ kho riêng tư
+const VaultManager = {
+  OWNER: 'FatKen13',
+  REPO: 'my-vault',
+  
+  getToken() {
+    return localStorage.getItem('omnibox_github_pat') || '';
+  },
+
+  // 1. Đọc dữ liệu từ Repo Private
+  async readData(filePath) {
+    const token = this.getToken();
+    if (!token) throw new Error('Chưa cấu hình GitHub Token!');
+
+    const res = await fetch(`https://api.github.com/repos/${this.OWNER}/${this.REPO}/contents/${filePath}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+    
+    if (!res.ok) throw new Error(`Lỗi đọc dữ liệu: ${res.statusText}`);
+    const data = await res.json();
+    const content = decodeURIComponent(escape(atob(data.content)));
+    return { content: JSON.parse(content), sha: data.sha };
+  },
+
+  // 2. Ghi / Cập nhật dữ liệu vào Repo Private
+  async writeData(filePath, newContentObj, sha = null) {
+    const token = this.getToken();
+    const encodedContent = btoa(unescape(encodeURIComponent(JSON.stringify(newContentObj, null, 2))));
+
+    const payload = {
+      message: `update: ${filePath} at ${new Date().toISOString()}`,
+      content: encodedContent
+    };
+    if (sha) payload.sha = sha;
+
+    const res = await fetch(`https://api.github.com/repos/${this.OWNER}/${this.REPO}/contents/${filePath}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    return await res.json();
+  }
+};
+```
 
