@@ -6,16 +6,16 @@
 const GoldManager = (() => {
   const GOLD_CACHE_KEY = "omnibox_gold_rates_v1";
 
-  // Danh mục các loại vàng phổ biến
+  // Danh mục các loại vàng thực tế chuẩn thị trường 2026
   const GOLD_TYPES = [
     {
       id: "sjc_hcm",
       brand: "SJC",
-      name: "Vàng SJC 1L - 10L",
+      name: "Vàng miếng SJC 1L - 10L",
       city: "Toàn quốc",
-      buy: 88.5,       // Triệu đồng / lượng
-      sell: 90.5,
-      change: 0.5,     // Tăng 500k so với hôm qua
+      buy: 145.6,       // 145.6 triệu đồng / lượng (14.56 triệu / chỉ)
+      sell: 148.6,      // 148.6 triệu đồng / lượng (14.86 triệu / chỉ)
+      change: 0.2,
       trend: "up"
     },
     {
@@ -23,8 +23,8 @@ const GoldManager = (() => {
       brand: "SJC",
       name: "Vàng nhẫn SJC 99.99 (1-5 chỉ)",
       city: "TP.HCM",
-      buy: 87.2,
-      sell: 88.8,
+      buy: 147.5,
+      sell: 150.5,
       change: 0.3,
       trend: "up"
     },
@@ -33,9 +33,9 @@ const GoldManager = (() => {
       brand: "DOJI",
       name: "Vàng DOJI AVPL (Hà Nội)",
       city: "Hà Nội",
-      buy: 88.5,
-      sell: 90.5,
-      change: 0.5,
+      buy: 145.6,
+      sell: 148.6,
+      change: 0.2,
       trend: "up"
     },
     {
@@ -43,9 +43,9 @@ const GoldManager = (() => {
       brand: "DOJI",
       name: "Vàng DOJI AVPL (TP.HCM)",
       city: "TP.HCM",
-      buy: 88.5,
-      sell: 90.5,
-      change: 0.5,
+      buy: 145.6,
+      sell: 148.6,
+      change: 0.2,
       trend: "up"
     },
     {
@@ -53,9 +53,9 @@ const GoldManager = (() => {
       brand: "PNJ",
       name: "Vàng PNJ (24K) - Trơn",
       city: "Toàn quốc",
-      buy: 87.3,
-      sell: 88.9,
-      change: 0.4,
+      buy: 145.6,
+      sell: 148.6,
+      change: 0.2,
       trend: "up"
     },
     {
@@ -63,8 +63,8 @@ const GoldManager = (() => {
       brand: "Bảo Tín Minh Châu",
       name: "Vàng Rồng Thăng Long",
       city: "Hà Nội",
-      buy: 87.4,
-      sell: 89.0,
+      buy: 145.6,
+      sell: 148.6,
       change: 0.2,
       trend: "up"
     },
@@ -73,9 +73,9 @@ const GoldManager = (() => {
       brand: "Thị trường",
       name: "Vàng 24K (99.99% - Nữ trang)",
       city: "Tự do",
-      buy: 86.0,
-      sell: 87.8,
-      change: 0.3,
+      buy: 143.5,
+      sell: 146.5,
+      change: 0.2,
       trend: "up"
     },
     {
@@ -83,9 +83,9 @@ const GoldManager = (() => {
       brand: "Thị trường",
       name: "Vàng 18K (75.0% - Nữ trang)",
       city: "Tự do",
-      buy: 63.5,
-      sell: 65.5,
-      change: 0.2,
+      buy: 106.5,
+      sell: 109.5,
+      change: 0.1,
       trend: "up"
     },
     {
@@ -93,8 +93,8 @@ const GoldManager = (() => {
       brand: "Thị trường",
       name: "Vàng 14K (58.3% - Nữ trang)",
       city: "Tự do",
-      buy: 49.0,
-      sell: 51.2,
+      buy: 82.0,
+      sell: 85.0,
       change: 0.1,
       trend: "up"
     }
@@ -107,14 +107,14 @@ const GoldManager = (() => {
     const sellData = [];
 
     const now = new Date();
-    const baseBuy = 88.5;
-    const baseSell = 90.5;
+    const baseBuy = 145.6;
+    const baseSell = 148.6;
 
     // Mô phỏng chuỗi biến động giá thực tế
     const seedDeltas = [
-      -0.8, -0.6, -0.4, -0.2, 0.0, 0.3, 0.5, 0.2, -0.1, 0.4,
-      0.6, 0.8, 1.2, 0.9, 0.5, 0.2, -0.3, -0.5, -0.1, 0.4,
-      0.7, 1.0, 0.8, 0.5, 0.2, 0.0, 0.3, 0.4, 0.5, 0.5
+      -1.5, -1.2, -0.8, -0.5, 0.0, 0.5, 0.8, 0.4, -0.2, 0.6,
+      1.0, 1.4, 2.0, 1.5, 0.8, 0.3, -0.4, -0.8, -0.2, 0.6,
+      1.2, 1.8, 1.4, 0.8, 0.3, 0.0, 0.4, 0.6, 0.8, 0.8
     ];
 
     for (let i = days - 1; i >= 0; i--) {
