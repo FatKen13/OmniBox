@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>OmniBox - Lịch Vạn Niên, Đổi Đơn Vị, Tỷ Giá Vietcombank</title>
+  <meta name="description" content="OmniBox - Bộ tiện ích đa năng: Lịch Âm Dương vạn niên, Can Chi, Giờ hoàng đạo, Chuyển đổi đơn vị đo lường toàn diện và Tỷ giá ngoại tệ Vietcombank.">
+  
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- App Style -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2563eb">
+</head>
+<body>
+
+  <!-- Ambient Animated Background -->
+  <div class="bg-ambient">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <div class="app-container">
+    
+    <!-- Top Header Bar -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-cube"></i>
+        </div>
+        <div class="brand-info">
+          <h1>OmniBox</h1>
+          <p id="header-today-text">Hôm nay: Thứ ...</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="header-badge" id="header-lunar-badge">
+          <i class="fa-solid fa-moon"></i>
+          <span id="header-lunar-text">Âm lịch ...</span>
+        </div>
+        <button id="theme-toggle-btn" class="theme-toggle-btn" title="Chuyển chế độ Sáng / Tối" aria-label="Toggle Theme">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs-wrapper">
+      <nav class="nav-tabs" role="tablist">
+        <button class="tab-btn active" data-tab="lunar" role="tab" aria-selected="true">
+          <i class="fa-solid fa-calendar-days"></i>
+          <span>Lịch Vạn Niên</span>
+        </button>
+        <button class="tab-btn" data-tab="units" role="tab" aria-selected="false">
+          <i class="fa-solid fa-scale-balanced"></i>
+          <span>Đổi Đơn Vị</span>
+        </button>
+        <button class="tab-btn" data-tab="currency" role="tab" aria-selected="false">
+          <i class="fa-solid fa-money-bill-trend-up"></i>
+          <span>Tỷ Giá VCB</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- ====================================================================
+         TAB 1: LỊCH VẠN NIÊN (LUNAR CALENDAR)
+         ==================================================================== -->
+    <main id="tab-lunar" class="tab-content active" role="tabpanel">
+      <div class="calendar-layout">
+        
+        <!-- Left: Tờ Lịch Bloc Ngày -->
+        <div class="bloc-card">
+          <div class="bloc-header">
+            <div class="solar-month-year" id="bloc-solar-month-year">THÁNG 9 NĂM 2026</div>
+            <div class="solar-day-name" id="bloc-solar-dayname">THỨ SÁU</div>
+          </div>
+
+          <div class="bloc-body">
+            <div class="solar-big-day" id="bloc-solar-day">04</div>
+            
+            <div class="lunar-badge-box">
+              <div class="lunar-big" id="bloc-lunar-day">24</div>
+              <div class="lunar-text">
+                ÂM LỊCH
+                <span id="bloc-lunar-month-year">Tháng 7 (Đủ) - Năm Bính Ngọ</span>
+              </div>
+            </div>
+
+            <!-- Can Chi -->
+            <div class="canchi-details">
+              <div class="canchi-item">
+                <div class="label">Năm</div>
+                <div class="val" id="bloc-canchi-year">Bính Ngọ</div>
+              </div>
+              <div class="canchi-item">
+                <div class="label">Tháng</div>
+                <div class="val" id="bloc-canchi-month">Bính Thân</div>
+              </div>
+              <div class="canchi-item">
+                <div class="label">Ngày</div>
+                <div class="val" id="bloc-canchi-day">Kỷ Tỵ</div>
+              </div>
+            </div>
+
+            <!-- Badges: Hoàng Đạo, Tiết khí, Xuất hành -->
+            <div class="bloc-badges">
+              <span class="badge badge-good" id="bloc-hoangdao-badge">
+                <i class="fa-solid fa-star"></i> <span id="bloc-hoangdao-text">Hoàng Đạo</span>
+              </span>
+              <span class="badge badge-info" id="bloc-tietkhi-badge">
+                <i class="fa-solid fa-cloud-sun"></i> <span id="bloc-tietkhi-text">Tiết khí</span>
+              </span>
+              <span class="badge badge-info" id="bloc-xuathanh-badge">
+                <i class="fa-solid fa-compass"></i> Hướng Hỷ: <span id="bloc-hythan-text">Đông Bắc</span>
+              </span>
+            </div>
+
+            <!-- Holiday Alert -->
+            <div class="holiday-alert" id="bloc-holiday-alert" style="display: none;">
+              <i class="fa-solid fa-gift"></i>
+              <span id="bloc-holiday-text">Tết Nguyên Đán</span>
+            </div>
+          </div>
+
+          <div class="bloc-footer">
+            <button class="btn-ctrl" id="btn-prev-day"><i class="fa-solid fa-chevron-left"></i> Hôm trước</button>
+            <button class="btn-ctrl" id="btn-today-day"><i class="fa-solid fa-clock-rotate-left"></i> Hôm nay</button>
+            <button class="btn-ctrl" id="btn-next-day">Hôm sau <i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+        </div>
+
+        <!-- Right: Lịch Tháng & Giờ Hoàng Đạo -->
+        <div class="calendar-right-col">
+          
+          <!-- Month Matrix Calendar -->
+          <div class="month-calendar-card">
+            <div class="month-nav-header">
+              <div class="month-title" id="month-matrix-title">Tháng 9, 2026</div>
+              <div class="month-nav-btns">
+                <button class="btn-ctrl" id="btn-prev-month"><i class="fa-solid fa-chevron-left"></i></button>
+                <button class="btn-ctrl" id="btn-current-month">Tháng này</button>
+                <button class="btn-ctrl" id="btn-next-month"><i class="fa-solid fa-chevron-right"></i></button>
+              </div>
+            </div>
+
+            <div class="days-grid">
+              <div class="day-header">T2</div>
+              <div class="day-header">T3</div>
+              <div class="day-header">T4</div>
+              <div class="day-header">T5</div>
+              <div class="day-header">T6</div>
+              <div class="day-header weekend">T7</div>
+              <div class="day-header weekend">CN</div>
+            </div>
+            
+            <div class="days-grid" id="month-days-container" style="margin-top: 0.35rem;">
+              <!-- Javascript will render 42 day cells here -->
+            </div>
+          </div>
+
+          <!-- Khối Tìm & Chọn Ngày Nhanh (Dương Lịch & Âm Lịch) -->
+          <div class="info-accordion-card" style="padding: 1.25rem 1.5rem;">
+            <div class="month-nav-header" style="margin-bottom: 0.85rem;">
+              <h2 class="card-heading" style="margin-bottom: 0; font-size: 1rem;">
+                <i class="fa-solid fa-magnifying-glass" style="color: #2563eb;"></i>
+                Tìm & Tra Cứu Ngày Bất Kỳ
+              </h2>
+              <div class="search-mode-tabs">
+                <button class="search-mode-btn active" id="btn-mode-solar">Dương Lịch</button>
+                <button class="search-mode-btn" id="btn-mode-lunar">Âm Lịch</button>
+              </div>
+            </div>
+
+            <!-- Form Tìm Dương Lịch -->
+            <form id="form-search-solar" class="date-search-form">
+              <div class="search-inputs-row">
+                <div class="search-input-group">
+                  <label for="solar-pick-date">Chọn Ngày / Tháng / Năm</label>
+                  <input type="date" id="solar-pick-date" class="custom-date-input">
+                </div>
+                <button type="submit" class="btn-search-go">
+                  <i class="fa-solid fa-arrow-right"></i> Xem Ngày Này
+                </button>
+              </div>
+            </form>
+
+            <!-- Form Tìm Âm Lịch -->
+            <form id="form-search-lunar" class="date-search-form" style="display: none;">
+              <div class="search-inputs-row">
+                <div class="search-col">
+                  <label for="lunar-pick-day">Ngày Âm</label>
+                  <input type="number" id="lunar-pick-day" class="custom-num-input" min="1" max="30" value="1" placeholder="1-30">
+                </div>
+                <div class="search-col">
+                  <label for="lunar-pick-month">Tháng Âm</label>
+                  <input type="number" id="lunar-pick-month" class="custom-num-input" min="1" max="12" value="1" placeholder="1-12">
+                </div>
+                <div class="search-col">
+                  <label for="lunar-pick-year">Năm Âm</label>
+                  <input type="number" id="lunar-pick-year" class="custom-num-input" min="1900" max="2100" value="2026" placeholder="Năm">
+                </div>
+                <button type="submit" class="btn-search-go">
+                  <i class="fa-solid fa-arrow-right"></i> Tra Cứu
+                </button>
+              </div>
+            </form>
+
+            <!-- Quick Festival Links -->
+            <div class="quick-festivals-row">
+              <span class="quick-label"><i class="fa-solid fa-bolt"></i> Tra nhanh:</span>
+              <button class="festival-chip" data-lunar="1-1-2026">🧧 Mùng 1 Tết 2026</button>
+              <button class="festival-chip" data-lunar="15-1-2026">🌕 Rằm tháng Giêng</button>
+              <button class="festival-chip" data-lunar="10-3-2026">👑 Giỗ Tổ Hùng Vương</button>
+              <button class="festival-chip" data-lunar="15-8-2026">🥮 Tết Trung Thu</button>
+            </div>
+          </div>
+
+          <!-- Giờ Hoàng Đạo trong ngày -->
+          <div class="info-accordion-card">
+            <h2 class="card-heading">
+              <i class="fa-solid fa-hourglass-half" style="color: #ef4444;"></i>
+              12 Khung Giờ Trong Ngày
+            </h2>
+            <div class="gio-list-grid" id="gio-hoangdao-container">
+              <!-- Render 12 hours -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+
+    <!-- ====================================================================
+         TAB 2: ĐỔI ĐƠN VỊ ĐO LƯỜNG (UNIT CONVERTER)
+         ==================================================================== -->
+    <section id="tab-units" class="tab-content" role="tabpanel">
+      <div class="converter-container">
+        
+        <!-- Categories Carousel Bar -->
+        <div class="categories-bar" id="unit-categories-bar">
+          <!-- Javascript renders category buttons -->
+        </div>
+
+        <!-- Conversion Card -->
+        <div class="converter-card">
+          <div class="converter-grid">
+            
+            <!-- From Unit -->
+            <div class="unit-field">
+              <label for="unit-from-input">Từ Đơn Vị (Nhập Giá Trị)</label>
+              <div class="input-group">
+                <input type="number" id="unit-from-input" class="custom-input" placeholder="1" value="1" step="any">
+                <select id="unit-from-select" class="custom-select"></select>
+              </div>
+            </div>
+
+            <!-- Swap Button -->
+            <div class="swap-btn-box">
+              <button id="btn-swap-units" class="swap-btn" title="Đảo chiều đổi đơn vị" aria-label="Swap units">
+                <i class="fa-solid fa-arrow-right-arrow-left"></i>
+              </button>
+            </div>
+
+            <!-- To Unit -->
+            <div class="unit-field">
+              <label for="unit-to-input">Sang Đơn Vị (Kết Quả)</label>
+              <div class="input-group">
+                <input type="text" id="unit-to-input" class="custom-input" placeholder="Kết quả..." readonly>
+                <select id="unit-to-select" class="custom-select"></select>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Actions -->
+          <div class="converter-actions">
+            <div style="font-size: 0.85rem; color: var(--text-muted);" id="unit-formula-hint">
+              <i class="fa-solid fa-circle-info"></i> Nhập số để xem quy đổi tức thì
+            </div>
+            <button class="copy-btn" id="btn-copy-unit-result">
+              <i class="fa-regular fa-copy"></i> Sao chép kết quả
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 3: TỶ GIÁ VIETCOMBANK & ĐỔI TIỀN (CURRENCY CONVERTER)
+         ==================================================================== -->
+    <section id="tab-currency" class="tab-content" role="tabpanel">
+      <div class="currency-container">
+        
+        <!-- Calculator Card -->
+        <div class="currency-calc-card">
+          <div class="currency-header-status">
+            <div class="vcb-badge">
+              <i class="fa-solid fa-building-columns"></i>
+              <span id="vcb-status-text">Tỷ giá Vietcombank</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 0.8rem; color: var(--text-muted);" id="vcb-timestamp-text">Cập nhật: Đang tải...</span>
+              <button class="refresh-rates-btn" id="btn-refresh-rates" title="Tải lại tỷ giá mới nhất">
+                <i class="fa-solid fa-arrows-rotate"></i> Làm mới
+              </button>
+            </div>
+          </div>
+
+          <!-- Rate Type Selector (Mua TM, Mua CK, Bán) -->
+          <div class="rate-type-selector">
+            <button class="rate-type-btn active" data-type="sell">Khách Mua Ngoại Tệ (Giá Bán Ngân Hàng)</button>
+            <button class="rate-type-btn" data-type="transfer">Khách Bán Chuyển Khoản</button>
+            <button class="rate-type-btn" data-type="buy">Khách Bán Tiền Mặt</button>
+          </div>
+
+          <!-- Converter Grid -->
+          <div class="converter-grid">
+            
+            <!-- From Currency -->
+            <div class="unit-field">
+              <label for="currency-from-amount">Số Tiền Muốn Đổi</label>
+              <div class="input-group">
+                <input type="number" id="currency-from-amount" class="custom-input" placeholder="100" value="100" min="0" step="any">
+                <select id="currency-from-select" class="custom-select"></select>
+              </div>
+            </div>
+
+            <!-- Swap Currency Button -->
+            <div class="swap-btn-box">
+              <button id="btn-swap-currency" class="swap-btn" title="Đổi chiều tiền tệ" aria-label="Swap currency">
+                <i class="fa-solid fa-arrow-right-arrow-left"></i>
+              </button>
+            </div>
+
+            <!-- To Currency -->
+            <div class="unit-field">
+              <label for="currency-to-amount">Quy Đổi Tương Đương</label>
+              <div class="input-group">
+                <input type="text" id="currency-to-amount" class="custom-input" placeholder="Kết quả..." readonly>
+                <select id="currency-to-select" class="custom-select"></select>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Actions -->
+          <div class="converter-actions">
+            <div style="font-size: 0.85rem; color: var(--text-muted);" id="currency-exchange-rate-hint">
+              1 USD = 25,480 VND
+            </div>
+            <button class="copy-btn" id="btn-copy-currency-result">
+              <i class="fa-regular fa-copy"></i> Sao chép số tiền
+            </button>
+          </div>
+        </div>
+
+        <!-- Vietcombank Rate Table -->
+        <div class="rate-table-card">
+          <div class="month-nav-header" style="margin-bottom: 0.8rem;">
+            <h2 class="card-heading" style="margin-bottom: 0;">
+              <i class="fa-solid fa-table-list" style="color: #16a34a;"></i>
+              Bảng Tỷ Giá Chi Tiết Vietcombank
+            </h2>
+          </div>
+
+          <!-- Table Search Bar -->
+          <div class="table-search-bar">
+            <i class="fa-solid fa-magnifying-glass" style="color: var(--text-muted);"></i>
+            <input type="text" id="currency-search-input" placeholder="Tìm theo mã ngoại tệ (USD, EUR...) hoặc tên quốc gia...">
+          </div>
+
+          <div class="table-responsive">
+            <table class="rates-table">
+              <thead>
+                <tr>
+                  <th>Ngoại Tệ</th>
+                  <th>Mua Tiền Mặt</th>
+                  <th>Mua Chuyển Khoản</th>
+                  <th>Giá Bán Ra</th>
+                </tr>
+              </thead>
+              <tbody id="rates-table-body">
+                <!-- Javascript renders table rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Application Scripts -->
+  <script src="js/lunar.js"></script>
+  <script src="js/units.js"></script>
+  <script src="js/currency.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "OmniBox - Lịch Vạn Niên & Đổi Tiền",
+  "short_name": "OmniBox",
+  "description": "Bộ tiện ích Lịch Âm Dương vạn niên, Đổi đơn vị đo lường và Tỷ giá Vietcombank",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b1120",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/calendar-days.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
