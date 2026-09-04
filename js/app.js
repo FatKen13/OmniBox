@@ -571,12 +571,14 @@ document.addEventListener("DOMContentLoaded", () => {
       state.currencyRates = res.data;
 
       vcbTimestamp.textContent = `Cập nhật: ${res.data.dateTime}`;
-      if (res.isFallback) {
-        showToast("Đang dùng dữ liệu tỷ giá tham khảo (Offline)", "fa-triangle-exclamation");
-      } else if (res.fromCache) {
-        // Cached
-      } else {
-        showToast("Đã cập nhật tỷ giá Vietcombank mới nhất!");
+      
+      // Chỉ hiện toast khi người dùng chủ động bấm nút "Làm mới"
+      if (forceRefresh) {
+        if (res.isFallback) {
+          showToast("Đang dùng dữ liệu tỷ giá tham khảo (Offline)", "fa-triangle-exclamation");
+        } else {
+          showToast("Đã cập nhật tỷ giá Vietcombank mới nhất!");
+        }
       }
 
       populateCurrencySelects(res.data);
@@ -585,7 +587,9 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (e) {
       console.error(e);
       vcbTimestamp.textContent = "Không thể tải tỷ giá";
-      showToast("Lỗi khi tải tỷ giá", "fa-circle-xmark");
+      if (forceRefresh) {
+        showToast("Lỗi khi tải tỷ giá", "fa-circle-xmark");
+      }
     } finally {
       refreshRatesBtn.classList.remove("loading");
     }
