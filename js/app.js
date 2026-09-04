@@ -452,8 +452,207 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* ==========================================================================
-     6. TAB 3: TỶ GIÁ VIETCOMBANK & ĐỔI TIỀN CONTROLLER
+     6. TAB 3: TÀI CHÍNH (GIÁ VÀNG, BIỂU ĐỒ & TỶ GIÁ VCB)
      ========================================================================== */
+  // 6.1. Sub-tabs Switcher (Giá Vàng vs Tỷ Giá)
+  const subtabBtnGold = document.getElementById("subtab-btn-gold");
+  const subtabBtnCurrency = document.getElementById("subtab-btn-currency");
+  const goldSection = document.getElementById("finance-gold-section");
+  const currencySection = document.getElementById("finance-currency-section");
+
+  if (subtabBtnGold && subtabBtnCurrency) {
+    subtabBtnGold.addEventListener("click", () => {
+      subtabBtnGold.classList.add("active");
+      subtabBtnCurrency.classList.remove("active");
+      goldSection.style.display = "flex";
+      currencySection.style.display = "none";
+      if (goldChartInstance) {
+        goldChartInstance.resize();
+      }
+    });
+
+    subtabBtnCurrency.addEventListener("click", () => {
+      subtabBtnCurrency.classList.add("active");
+      subtabBtnGold.classList.remove("active");
+      currencySection.style.display = "flex";
+      goldSection.style.display = "none";
+    });
+  }
+
+  // 6.2. Gold Price Controller
+  let goldChartInstance = null;
+  let goldAction = "sell"; // 'sell' | 'buy'
+
+  const goldCalcAmount = document.getElementById("gold-calc-amount");
+  const goldCalcUnit = document.getElementById("gold-calc-unit");
+  const goldCalcType = document.getElementById("gold-calc-type");
+  const goldCalcResult = document.getElementById("gold-calc-result");
+  const goldRatesTableBody = document.getElementById("gold-rates-table-body");
+  const goldActionBtns = document.querySelectorAll(".gold-action-btn");
+  const timeframeBtns = document.querySelectorAll(".timeframe-btn");
+
+  // Populate Gold Types Select
+  function initGoldTypesSelect() {
+    if (!goldCalcType) return;
+    goldCalcType.innerHTML = "";
+    GoldManager.GOLD_TYPES.forEach(item => {
+      const opt = document.createElement("option");
+      opt.value = item.id;
+      opt.textContent = `${item.name} (${item.brand})`;
+      goldCalcType.appendChild(opt);
+    });
+  }
+
+  // Calculate Gold Money
+  function calculateGold() {
+    if (!goldCalcAmount || !goldCalcResult) return;
+    const amount = goldCalcAmount.value;
+    const unit = goldCalcUnit.value;
+    const goldId = goldCalcType.value;
+
+    const res = GoldManager.calculateGoldMoney(amount, unit, goldId, goldAction);
+    goldCalcResult.value = res ? GoldManager.formatVnd(res.totalVnd) : "0 ₫";
+  }
+
+  // Render Gold Table
+  function renderGoldTable() {
+    if (!goldRatesTableBody) return;
+    goldRatesTableBody.innerHTML = "";
+
+    GoldManager.GOLD_TYPES.forEach(item => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>
+          <div class="currency-cell">
+            <i class="fa-solid fa-gem" style="color: #f59e0b; font-size: 1rem;"></i>
+            <div class="currency-meta">
+              <span>${item.name}</span>
+              <span class="sub-name">${item.brand} • ${item.city}</span>
+            </div>
+          </div>
+        </td>
+        <td><strong>${item.buy.toFixed(2)}</strong></td>
+        <td style="color: #ef4444;"><strong>${item.sell.toFixed(2)}</strong></td>
+      `;
+      goldRatesTableBody.appendChild(tr);
+    });
+  }
+
+  // Render Gold Chart (Chart.js)
+  function renderGoldChart(days = 7) {
+    const canvas = document.getElementById("goldPriceChart");
+    if (!canvas || typeof Chart === "undefined") return;
+
+    const ctx = canvas.getContext("2d");
+    const { labels, buyData, sellData } = GoldManager.generateHistoricalData(days);
+
+    if (goldChartInstance) {
+      goldChartInstance.destroy();
+    }
+
+    const isDark = state.theme === "dark";
+    const gridColor = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.05)";
+    const textColor = isDark ? "#94a3b8" : "#64748b";
+
+    goldChartInstance = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "Giá Bán (tr/lượng)",
+            data: sellData,
+            borderColor: "#ef4444",
+            backgroundColor: "rgba(239, 68, 68, 0.1)",
+            fill: true,
+            tension: 0.35,
+            borderWidth: 2.5,
+            pointRadius: days === 7 ? 4 : 2,
+            pointBackgroundColor: "#ef4444"
+          },
+          {
+            label: "Giá Mua (tr/lượng)",
+            data: buyData,
+            borderColor: "#16a34a",
+            backgroundColor: "rgba(22, 163, 74, 0.08)",
+            fill: true,
+            tension: 0.35,
+            borderWidth: 2.5,
+            pointRadius: days === 7 ? 4 : 2,
+            pointBackgroundColor: "#16a34a"
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: "index",
+          intersect: false
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: "top",
+            labels: {
+              boxWidth: 12,
+              font: { family: "Be Vietnam Pro", size: 11, weight: "600" },
+              color: textColor
+            }
+          },
+          tooltip: {
+            backgroundColor: isDark ? "#1e293b" : "#ffffff",
+            titleColor: isDark ? "#ffffff" : "#0f172a",
+            bodyColor: isDark ? "#e2e8f0" : "#334155",
+            borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+            borderWidth: 1,
+            padding: 8,
+            titleFont: { family: "Be Vietnam Pro", size: 11, weight: "700" },
+            bodyFont: { family: "Be Vietnam Pro", size: 11 }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { font: { family: "Be Vietnam Pro", size: 10 }, color: textColor }
+          },
+          y: {
+            grid: { color: gridColor },
+            ticks: {
+              font: { family: "Be Vietnam Pro", size: 10 },
+              color: textColor,
+              callback: (val) => `${val} tr`
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Gold Listeners
+  if (goldCalcAmount) goldCalcAmount.addEventListener("input", calculateGold);
+  if (goldCalcUnit) goldCalcUnit.addEventListener("change", calculateGold);
+  if (goldCalcType) goldCalcType.addEventListener("change", calculateGold);
+
+  goldActionBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      goldActionBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      goldAction = btn.getAttribute("data-action");
+      calculateGold();
+    });
+  });
+
+  timeframeBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      timeframeBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const days = parseInt(btn.getAttribute("data-days"), 10);
+      renderGoldChart(days);
+    });
+  });
+
+  // 6.3. Currency Controller
   const currFromAmount = document.getElementById("currency-from-amount");
   const currToAmount = document.getElementById("currency-to-amount");
   const currFromSelect = document.getElementById("currency-from-select");
@@ -537,7 +736,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (filtered.length === 0) {
-      ratesTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">Không tìm thấy ngoại tệ phù hợp</td></tr>`;
+      ratesTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Không tìm thấy ngoại tệ phù hợp</td></tr>`;
       return;
     }
 
@@ -572,7 +771,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       vcbTimestamp.textContent = `Cập nhật: ${res.data.dateTime}`;
       
-      // Chỉ hiện toast khi người dùng chủ động bấm nút "Làm mới"
       if (forceRefresh) {
         if (res.isFallback) {
           showToast("Đang dùng dữ liệu tỷ giá tham khảo (Offline)", "fa-triangle-exclamation");
@@ -596,32 +794,42 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Currency Event Listeners
-  currFromAmount.addEventListener("input", calculateCurrency);
-  currFromSelect.addEventListener("change", calculateCurrency);
-  currToSelect.addEventListener("change", calculateCurrency);
+  if (currFromAmount) currFromAmount.addEventListener("input", calculateCurrency);
+  if (currFromSelect) currFromSelect.addEventListener("change", calculateCurrency);
+  if (currToSelect) currToSelect.addEventListener("change", calculateCurrency);
 
-  document.getElementById("btn-swap-currency").addEventListener("click", () => {
-    const temp = currFromSelect.value;
-    currFromSelect.value = currToSelect.value;
-    currToSelect.value = temp;
-    calculateCurrency();
-  });
+  const btnSwapCurrency = document.getElementById("btn-swap-currency");
+  if (btnSwapCurrency) {
+    btnSwapCurrency.addEventListener("click", () => {
+      const temp = currFromSelect.value;
+      currFromSelect.value = currToSelect.value;
+      currToSelect.value = temp;
+      calculateCurrency();
+    });
+  }
 
-  refreshRatesBtn.addEventListener("click", () => {
-    loadCurrencyRates(true);
-  });
+  if (refreshRatesBtn) {
+    refreshRatesBtn.addEventListener("click", () => {
+      loadCurrencyRates(true);
+    });
+  }
 
-  currencySearchInput.addEventListener("input", (e) => {
-    renderRatesTable(e.target.value);
-  });
+  if (currencySearchInput) {
+    currencySearchInput.addEventListener("input", (e) => {
+      renderRatesTable(e.target.value);
+    });
+  }
 
-  document.getElementById("btn-copy-currency-result").addEventListener("click", () => {
-    if (currToAmount.value) {
-      navigator.clipboard.writeText(currToAmount.value).then(() => {
-        showToast("Đã sao chép số tiền quy đổi!");
-      });
-    }
-  });
+  const btnCopyCurrency = document.getElementById("btn-copy-currency-result");
+  if (btnCopyCurrency) {
+    btnCopyCurrency.addEventListener("click", () => {
+      if (currToAmount.value) {
+        navigator.clipboard.writeText(currToAmount.value).then(() => {
+          showToast("Đã sao chép số tiền quy đổi!");
+        });
+      }
+    });
+  }
 
   /* ==========================================================================
      7. INITIALIZATION
@@ -635,6 +843,12 @@ document.addEventListener("DOMContentLoaded", () => {
   renderUnitCategories();
   populateUnitSelects();
   calculateUnitConversion();
+
+  // Init Gold Manager
+  initGoldTypesSelect();
+  calculateGold();
+  renderGoldTable();
+  renderGoldChart(7);
 
   // Init Currency Rates
   loadCurrencyRates(false);

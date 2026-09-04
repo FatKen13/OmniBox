@@ -1168,13 +1168,197 @@ body {
 }
 
 /* ==========================================================================
-   TAB 3: TỶ GIÁ VIETCOMBANK & ĐỔI TIỀN (CURRENCY CONVERTER)
+   TAB 3: TÀI CHÍNH (GIÁ VÀNG, BIỂU ĐỒ & TỶ GIÁ)
    ========================================================================== */
 
-.currency-container {
+.finance-container {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+/* Sub-tabs Switcher */
+.finance-subtabs-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.finance-subtabs {
+  display: flex;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  padding: 0.3rem;
+  border-radius: var(--radius-full);
+  gap: 0.35rem;
+  width: 100%;
+  max-width: 480px;
+}
+
+.finance-subtab-btn {
+  flex: 1;
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-full);
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.finance-subtab-btn.active {
+  background: var(--bg-tertiary);
+  color: var(--text-main);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.finance-section-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  animation: fadeIn var(--transition-normal);
+}
+
+/* Gold Hero Highlight Card */
+.gold-hero-card {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(217, 119, 6, 0.06) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: var(--radius-lg);
+  padding: 1rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.gold-hero-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.gold-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #d97706;
+}
+
+.gold-time-badge {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.gold-price-highlight-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+.gold-highlight-item {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.85rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.gold-highlight-item.buy-side {
+  border-left: 4px solid var(--good-color);
+}
+
+.gold-highlight-item.sell-side {
+  border-left: 4px solid #ef4444;
+}
+
+.gold-highlight-item .hl-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.gold-highlight-item .hl-value {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text-main);
+}
+
+.gold-highlight-item.buy-side .hl-value {
+  color: var(--good-color);
+}
+
+.gold-highlight-item.sell-side .hl-value {
+  color: #dc2626;
+}
+
+.gold-highlight-item .hl-unit {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* Timeframe Selector */
+.chart-timeframe-selector {
+  display: flex;
+  background: var(--bg-tertiary);
+  padding: 0.2rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-color);
+  gap: 0.2rem;
+}
+
+.timeframe-btn {
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.timeframe-btn.active {
+  background: #f59e0b;
+  color: #ffffff;
+}
+
+.gold-action-btn {
+  flex: 1;
+  padding: 0.4rem 0.5rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-align: center;
+  transition: all var(--transition-fast);
+}
+
+.gold-action-btn.active {
+  background: #f59e0b;
+  color: #ffffff;
+  border-color: transparent;
 }
 
 /* Currency Converter Card */

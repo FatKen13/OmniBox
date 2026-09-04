@@ -1,4 +1,4 @@
-const CACHE_NAME = "omnibox-v4";
+const CACHE_NAME = "omnibox-v5";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
@@ -6,8 +6,11 @@ const ASSETS_TO_CACHE = [
   "./js/lunar.js",
   "./js/units.js",
   "./js/currency.js",
+  "./js/gold.js",
   "./js/app.js",
-  "./manifest.json"
+  "./manifest.json",
+  "./favicon.png",
+  "./apple-touch-icon.png"
 ];
 
 self.addEventListener("install", (e) => {

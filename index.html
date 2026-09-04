@@ -17,8 +17,11 @@
   <!-- Font Awesome 6 Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
+  <!-- Chart.js for Gold Price Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  
   <!-- App Style -->
-  <link rel="stylesheet" href="style.css?v=4.0">
+  <link rel="stylesheet" href="style.css?v=5.0">
 
   <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -69,9 +72,9 @@
           <i class="fa-solid fa-scale-balanced"></i>
           <span>Đổi Đơn Vị</span>
         </button>
-        <button class="tab-btn" data-tab="currency" role="tab" aria-selected="false">
-          <i class="fa-solid fa-money-bill-trend-up"></i>
-          <span>Tỷ Giá VCB</span>
+        <button class="tab-btn" data-tab="finance" role="tab" aria-selected="false">
+          <i class="fa-solid fa-coins"></i>
+          <span>Tài Chính</span>
         </button>
       </nav>
     </div>
@@ -304,104 +307,237 @@
     </section>
 
     <!-- ====================================================================
-         TAB 3: TỶ GIÁ VIETCOMBANK & ĐỔI TIỀN (CURRENCY CONVERTER)
+         TAB 3: TÀI CHÍNH (GIÁ VÀNG, BIỂU ĐỒ & TỶ GIÁ VIETCOMBANK)
          ==================================================================== -->
-    <section id="tab-currency" class="tab-content" role="tabpanel">
-      <div class="currency-container">
+    <section id="tab-finance" class="tab-content" role="tabpanel">
+      <div class="finance-container">
         
-        <!-- Calculator Card -->
-        <div class="currency-calc-card">
-          <div class="currency-header-status">
-            <div class="vcb-badge">
-              <i class="fa-solid fa-building-columns"></i>
-              <span id="vcb-status-text">Tỷ giá Vietcombank</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <span style="font-size: 0.8rem; color: var(--text-muted);" id="vcb-timestamp-text">Cập nhật: Đang tải...</span>
-              <button class="refresh-rates-btn" id="btn-refresh-rates" title="Tải lại tỷ giá mới nhất">
-                <i class="fa-solid fa-arrows-rotate"></i> Làm mới
-              </button>
-            </div>
-          </div>
-
-          <!-- Rate Type Selector (Mua TM, Mua CK, Bán) -->
-          <div class="rate-type-selector">
-            <button class="rate-type-btn active" data-type="sell">Khách Mua Ngoại Tệ (Giá Bán Ngân Hàng)</button>
-            <button class="rate-type-btn" data-type="transfer">Khách Bán Chuyển Khoản</button>
-            <button class="rate-type-btn" data-type="buy">Khách Bán Tiền Mặt</button>
-          </div>
-
-          <!-- Converter Grid -->
-          <div class="converter-grid">
-            
-            <!-- From Currency -->
-            <div class="unit-field">
-              <label for="currency-from-amount">Số Tiền Muốn Đổi</label>
-              <div class="input-group">
-                <input type="number" id="currency-from-amount" class="custom-input" placeholder="100" value="100" min="0" step="any">
-                <select id="currency-from-select" class="custom-select"></select>
-              </div>
-            </div>
-
-            <!-- Swap Currency Button -->
-            <div class="swap-btn-box">
-              <button id="btn-swap-currency" class="swap-btn" title="Đổi chiều tiền tệ" aria-label="Swap currency">
-                <i class="fa-solid fa-arrow-right-arrow-left"></i>
-              </button>
-            </div>
-
-            <!-- To Currency -->
-            <div class="unit-field">
-              <label for="currency-to-amount">Quy Đổi Tương Đương</label>
-              <div class="input-group">
-                <input type="text" id="currency-to-amount" class="custom-input" placeholder="Kết quả..." readonly>
-                <select id="currency-to-select" class="custom-select"></select>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Bottom Actions -->
-          <div class="converter-actions">
-            <div style="font-size: 0.85rem; color: var(--text-muted);" id="currency-exchange-rate-hint">
-              1 USD = 25,480 VND
-            </div>
-            <button class="copy-btn" id="btn-copy-currency-result">
-              <i class="fa-regular fa-copy"></i> Sao chép số tiền
+        <!-- Sub-tabs Chuyển đổi giữa Giá Vàng và Tỷ Giá VCB -->
+        <div class="finance-subtabs-wrapper">
+          <div class="finance-subtabs">
+            <button class="finance-subtab-btn active" id="subtab-btn-gold">
+              <i class="fa-solid fa-coins" style="color: #f59e0b;"></i>
+              <span>Giá Vàng & Biểu Đồ</span>
+            </button>
+            <button class="finance-subtab-btn" id="subtab-btn-currency">
+              <i class="fa-solid fa-money-bill-wave" style="color: #10b981;"></i>
+              <span>Tỷ Giá Ngoại Tệ VCB</span>
             </button>
           </div>
         </div>
 
-        <!-- Vietcombank Rate Table -->
-        <div class="rate-table-card">
-          <div class="month-nav-header" style="margin-bottom: 0.8rem;">
-            <h2 class="card-heading" style="margin-bottom: 0;">
-              <i class="fa-solid fa-table-list" style="color: #16a34a;"></i>
-              Bảng Tỷ Giá Chi Tiết Vietcombank
+        <!-- ==================== PHẦN 1: GIÁ VÀNG & BIỂU ĐỒ ==================== -->
+        <div id="finance-gold-section" class="finance-section-view">
+          
+          <!-- Thẻ Tổng Quan Giá Vàng Hôm Nay -->
+          <div class="gold-hero-card">
+            <div class="gold-hero-header">
+              <div class="gold-badge">
+                <i class="fa-solid fa-gem"></i>
+                <span>Thị Trường Vàng SJC & 9999</span>
+              </div>
+              <span class="gold-time-badge" id="gold-last-updated">Cập nhật: Hôm nay</span>
+            </div>
+
+            <div class="gold-price-highlight-grid">
+              <div class="gold-highlight-item buy-side">
+                <span class="hl-label">SJC Mua Vào</span>
+                <span class="hl-value" id="gold-sjc-buy">88.50</span>
+                <span class="hl-unit">Triệu đ / Lượng</span>
+              </div>
+              <div class="gold-highlight-item sell-side">
+                <span class="hl-label">SJC Bán Ra</span>
+                <span class="hl-value" id="gold-sjc-sell">90.50</span>
+                <span class="hl-unit">Triệu đ / Lượng</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Khung Biểu Đồ Biến Động Giá Vàng -->
+          <div class="rate-table-card" style="padding: 1rem 0.85rem;">
+            <div class="month-nav-header" style="margin-bottom: 0.75rem;">
+              <h2 class="card-heading" style="margin-bottom: 0;">
+                <i class="fa-solid fa-chart-line" style="color: #f59e0b;"></i>
+                Biểu Đồ Biến Động Giá Vàng
+              </h2>
+              <div class="chart-timeframe-selector">
+                <button class="timeframe-btn active" data-days="7">7 Ngày</button>
+                <button class="timeframe-btn" data-days="30">1 Tháng</button>
+              </div>
+            </div>
+
+            <div class="chart-canvas-wrapper" style="position: relative; width: 100%; height: 220px;">
+              <canvas id="goldPriceChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Máy Tính Quy Đổi Vàng Sang Tiền VNĐ -->
+          <div class="converter-card">
+            <h2 class="card-heading" style="margin-bottom: 0.85rem;">
+              <i class="fa-solid fa-calculator" style="color: #f59e0b;"></i>
+              Máy Tính Quy Đổi Tiền Vàng
             </h2>
+
+            <div class="rate-type-selector" style="margin-bottom: 0.85rem;">
+              <button class="gold-action-btn active" data-action="sell">Khách Mua Vàng (Giá Bán Ra)</button>
+              <button class="gold-action-btn" data-action="buy">Khách Bán Vàng (Giá Mua Vào)</button>
+            </div>
+
+            <div class="converter-grid">
+              <!-- Nhập số lượng vàng -->
+              <div class="unit-field">
+                <label for="gold-calc-amount">Số Lượng Vàng</label>
+                <div class="input-group">
+                  <input type="number" id="gold-calc-amount" class="custom-input" placeholder="1" value="1" min="0" step="any">
+                  <select id="gold-calc-unit" class="custom-select">
+                    <option value="chi">Chỉ vàng (0.1 lượng)</option>
+                    <option value="cay" selected>Cây / Lượng vàng (10 chỉ)</option>
+                    <option value="phan">Phân vàng (0.01 lượng)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Loại vàng -->
+              <div class="unit-field">
+                <label for="gold-calc-type">Chọn Loại Vàng</label>
+                <div class="input-group">
+                  <select id="gold-calc-type" class="custom-select" style="min-height: 44px;"></select>
+                </div>
+              </div>
+
+              <!-- Thành tiền VNĐ -->
+              <div class="unit-field" style="grid-column: 1 / -1;">
+                <label for="gold-calc-result">Thành Tiền Tương Đương</label>
+                <input type="text" id="gold-calc-result" class="custom-input" style="color: #d97706; font-size: 1.35rem;" readonly>
+              </div>
+            </div>
           </div>
 
-          <!-- Table Search Bar -->
-          <div class="table-search-bar">
-            <i class="fa-solid fa-magnifying-glass" style="color: var(--text-muted);"></i>
-            <input type="text" id="currency-search-input" placeholder="Tìm theo mã ngoại tệ (USD, EUR...) hoặc tên quốc gia...">
+          <!-- Bảng Giá Vàng Chi Tiết Các Thương Hiệu -->
+          <div class="rate-table-card">
+            <div class="month-nav-header" style="margin-bottom: 0.65rem;">
+              <h2 class="card-heading" style="margin-bottom: 0;">
+                <i class="fa-solid fa-table-list" style="color: #f59e0b;"></i>
+                Bảng Giá Vàng Hôm Nay
+              </h2>
+            </div>
+
+            <div class="table-responsive">
+              <table class="rates-table">
+                <thead>
+                  <tr>
+                    <th>Loại Vàng / Thương Hiệu</th>
+                    <th>Mua Vào (tr/lượng)</th>
+                    <th>Bán Ra (tr/lượng)</th>
+                  </tr>
+                </thead>
+                <tbody id="gold-rates-table-body">
+                  <!-- Javascript renders gold rows -->
+                </tbody>
+              </table>
+            </div>
           </div>
 
-          <div class="table-responsive">
-            <table class="rates-table">
-              <thead>
-                <tr>
-                  <th>Ngoại Tệ</th>
-                  <th>Mua Tiền Mặt</th>
-                  <th>Mua Chuyển Khoản</th>
-                  <th>Giá Bán Ra</th>
-                </tr>
-              </thead>
-              <tbody id="rates-table-body">
-                <!-- Javascript renders table rows -->
-              </tbody>
-            </table>
+        </div>
+
+        <!-- ==================== PHẦN 2: TỶ GIÁ VIETCOMBANK ==================== -->
+        <div id="finance-currency-section" class="finance-section-view" style="display: none;">
+          
+          <!-- Calculator Card -->
+          <div class="currency-calc-card">
+            <div class="currency-header-status">
+              <div class="vcb-badge">
+                <i class="fa-solid fa-building-columns"></i>
+                <span id="vcb-status-text">Tỷ giá Vietcombank</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 0.8rem; color: var(--text-muted);" id="vcb-timestamp-text">Cập nhật: Đang tải...</span>
+                <button class="refresh-rates-btn" id="btn-refresh-rates" title="Tải lại tỷ giá mới nhất">
+                  <i class="fa-solid fa-arrows-rotate"></i> Làm mới
+                </button>
+              </div>
+            </div>
+
+            <!-- Rate Type Selector (Mua TM, Mua CK, Bán) -->
+            <div class="rate-type-selector">
+              <button class="rate-type-btn active" data-type="sell">Khách Mua Ngoại Tệ (Giá Bán Ngân Hàng)</button>
+              <button class="rate-type-btn" data-type="transfer">Khách Bán Chuyển Khoản</button>
+              <button class="rate-type-btn" data-type="buy">Khách Bán Tiền Mặt</button>
+            </div>
+
+            <!-- Converter Grid -->
+            <div class="converter-grid">
+              
+              <!-- From Currency -->
+              <div class="unit-field">
+                <label for="currency-from-amount">Số Tiền Muốn Đổi</label>
+                <div class="input-group">
+                  <input type="number" id="currency-from-amount" class="custom-input" placeholder="100" value="100" min="0" step="any">
+                  <select id="currency-from-select" class="custom-select"></select>
+                </div>
+              </div>
+
+              <!-- Swap Currency Button -->
+              <div class="swap-btn-box">
+                <button id="btn-swap-currency" class="swap-btn" title="Đổi chiều tiền tệ" aria-label="Swap currency">
+                  <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                </button>
+              </div>
+
+              <!-- To Currency -->
+              <div class="unit-field">
+                <label for="currency-to-amount">Quy Đổi Tương Đương</label>
+                <div class="input-group">
+                  <input type="text" id="currency-to-amount" class="custom-input" placeholder="Kết quả..." readonly>
+                  <select id="currency-to-select" class="custom-select"></select>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Bottom Actions -->
+            <div class="converter-actions">
+              <div style="font-size: 0.85rem; color: var(--text-muted);" id="currency-exchange-rate-hint">
+                1 USD = 25,480 VND
+              </div>
+              <button class="copy-btn" id="btn-copy-currency-result">
+                <i class="fa-regular fa-copy"></i> Sao chép số tiền
+              </button>
+            </div>
           </div>
+
+          <!-- Vietcombank Rate Table -->
+          <div class="rate-table-card">
+            <div class="month-nav-header" style="margin-bottom: 0.8rem;">
+              <h2 class="card-heading" style="margin-bottom: 0;">
+                <i class="fa-solid fa-table-list" style="color: #16a34a;"></i>
+                Bảng Tỷ Giá Chi Tiết Vietcombank
+              </h2>
+            </div>
+
+            <!-- Table Search Bar -->
+            <div class="table-search-bar">
+              <i class="fa-solid fa-magnifying-glass" style="color: var(--text-muted);"></i>
+              <input type="text" id="currency-search-input" placeholder="Tìm theo mã ngoại tệ (USD, EUR...) hoặc tên quốc gia...">
+            </div>
+
+            <div class="table-responsive">
+              <table class="rates-table">
+                <thead>
+                  <tr>
+                    <th>Ngoại Tệ</th>
+                    <th>Mua Tiền Mặt</th>
+                    <th>Mua Chuyển Khoản</th>
+                    <th>Giá Bán Ra</th>
+                  </tr>
+                </thead>
+                <tbody id="rates-table-body">
+                  <!-- Javascript renders table rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
 
       </div>
@@ -416,6 +552,7 @@
   <script src="js/lunar.js"></script>
   <script src="js/units.js"></script>
   <script src="js/currency.js"></script>
+  <script src="js/gold.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
