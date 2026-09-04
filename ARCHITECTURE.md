@@ -236,3 +236,45 @@ jobs:
 | [`js/units.js`](file:///Users/mini/Projects/AntiGravity/MoonCalendar/js/units.js) | Quy đổi 9 hệ đơn vị (Quốc tế + Sào, Mẫu, Chỉ/Cây vàng) | `UnitConverter.convert(category, from, to, value)` |
 | [`js/gold.js`](file:///Users/mini/Projects/AntiGravity/MoonCalendar/js/gold.js) | Bảng giá vàng, tính tiền vàng, vẽ biểu đồ Chart.js | `GoldManager.calculateGoldMoney(amount, unit, type)` |
 | [`js/currency.js`](file:///Users/mini/Projects/AntiGravity/MoonCalendar/js/currency.js) | Tỷ giá Vietcombank, vượt CORS, máy tính đổi ngoại tệ | `CurrencyManager.fetchExchangeRates()` |
+
+---
+
+## 🔒 7. PHÂN TÁCH DỮ LIỆU: PUBLIC HUB vs PRIVATE VAULT
+
+Khi phát triển các tính năng có tính chất **nhạy cảm / riêng tư** (như Quản lý Thu - Chi cá nhân, Sổ nợ, Ghi chú tài chính, Danh bạ...), hệ thống phải tuân thủ nguyên tắc phân vùng rõ ràng:
+
+```mermaid
+graph TD
+    subgraph Public[🌐 PUBLIC DATA HUB (Không bảo mật - Dùng chung)]
+        G[Giá Vàng / Ngoại Tệ / Giá Xăng / Lịch Âm] --> DataHub[Public Repo: DataHub]
+        DataHub --> CDN[GitHub Pages / Raw CDN]
+    end
+
+    subgraph Private[🔒 PRIVATE DATA VAULT (Bảo mật 100% - Riêng tư)]
+        T[Sổ Thu - Chi / Tiết kiệm / Nhật ký] --> Method1[Cách 1: Local-First / IndexedDB trên máy]
+        T --> Method2[Cách 2: Private GitHub Repo riêng biệt]
+        T --> Method3[Cách 3: Private Google Sheets / Supabase Auth]
+    end
+
+    CDN --> OmniBox[📱 OmniBox & Các App]
+    Method1 --> OmniBox
+    Method2 --> OmniBox
+    Method3 --> OmniBox
+```
+
+### 3 Giải pháp lưu trữ Dữ liệu Thu Chi Cá Nhân an toàn nhất:
+
+1. **Cách 1: Local-First (Lưu trực tiếp trên thiết bị - Khuyên dùng số 1)**
+   - Lưu trữ qua `IndexedDB` hoặc `LocalStorage` trên trình duyệt/điện thoại.
+   - **Ưu điểm**: 100% bảo mật vì dữ liệu không bao giờ rời khỏi máy của bạn, chạy Offline hoàn toàn, không tốn chi phí.
+   - **Tính năng cần có**: Thêm nút *"Xuất File Sao Lưu (Backup JSON)"* và *"Khôi Phục Dữ Liệu (Restore)"* để dễ dàng chuyển sang máy khác.
+
+2. **Cách 2: Đồng bộ lên Private GitHub Repository (Riêng tư)**
+   - Tạo 1 repo chế độ **Private** (ví dụ: `FatKen13/my-vault`).
+   - Ứng dụng client gọi GitHub API với Token cá nhân (Personal Access Token - PAT) của bạn.
+   - Có thể mã hóa AES dữ liệu bằng Master Password trên trình duyệt trước khi đẩy lên GitHub.
+
+3. **Cách 3: Google Sheets Private qua Apps Script Webhook**
+   - Tạo 1 Google Sheet cá nhân và tạo 1 Apps Script Webhook riêng tư làm backend.
+   - Mọi khoản thu chi được ghi thẳng vào bảng tính Excel/Google Sheets của riêng bạn.
+
