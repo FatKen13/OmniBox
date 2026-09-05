@@ -678,6 +678,52 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
       goldRatesTableBody.appendChild(tr);
     });
+
+    // Cập nhật trạng thái thời gian
+    updateGoldStatusBar();
+  }
+
+  // Hiển thị trạng thái cập nhật giá vàng
+  function updateGoldStatusBar() {
+    const statusEl = document.getElementById("gold-update-status");
+    if (!statusEl) return;
+
+    const info = GoldManager.getUpdateInfo();
+    if (info.updatedAt) {
+      const d = new Date(info.updatedAt);
+      const timeStr = d.toLocaleString("vi-VN", {
+        hour: "2-digit", minute: "2-digit",
+        day: "2-digit", month: "2-digit", year: "numeric",
+        hour12: false
+      });
+      const sourceIcon = info.source === "DataHub-Public" ? "fa-cloud" :
+                          info.source === "local-cache" ? "fa-database" : "fa-clock-rotate-left";
+      const sourceLabel = info.source === "DataHub-Public" ? "Trực tuyến" :
+                          info.source === "local-cache" ? "Bản local" : "Cache cũ";
+      statusEl.innerHTML = `<i class="fa-solid ${sourceIcon}"></i> Cập nhật: ${timeStr} <span class="gold-source-badge">${sourceLabel}</span>`;
+      statusEl.classList.remove("gold-status-offline");
+      statusEl.classList.add("gold-status-live");
+    } else {
+      statusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Dữ liệu mặc định (offline)';
+      statusEl.classList.remove("gold-status-live");
+      statusEl.classList.add("gold-status-offline");
+    }
+  }
+
+  // Nạp giá vàng mới nhất từ DataHub và cập nhật toàn bộ UI
+  async function loadAndUpdateGoldPrices() {
+    try {
+      const liveData = await GoldManager.fetchLatestGoldFromDB();
+      if (liveData) {
+        GoldManager.updateGoldTypes(liveData);
+      }
+    } catch (e) {
+      console.warn("[App] Không thể tải giá vàng mới:", e);
+    }
+    // Render lại UI với dữ liệu mới (hoặc fallback)
+    initGoldTypesSelect();
+    renderGoldTable();
+    calculateGold();
   }
 
   // Update Range KPI Stats
@@ -1076,11 +1122,10 @@ document.addEventListener("DOMContentLoaded", () => {
   populateUnitSelects();
   calculateUnitConversion();
 
-  // Init Gold Manager
-  initGoldTypesSelect();
-  calculateGold();
-  renderGoldTable();
+  // Init Gold Manager – nạp giá vàng live từ DataHub trước khi render
+  renderGoldTable(); // Render với giá mặc định trước
   renderGoldChart("7d");
+  loadAndUpdateGoldPrices(); // Async: tải giá mới nhất → re-render
 
   // Init Currency Rates
   loadCurrencyRates(false);

@@ -6,8 +6,12 @@
 const GoldManager = (() => {
   const GOLD_CACHE_KEY = "omnibox_gold_rates_v1";
 
-  // Danh mục các loại vàng thực tế chuẩn thị trường 2026
-  const GOLD_TYPES = [
+  // Thời điểm cập nhật giá gần nhất
+  let lastUpdatedAt = null;
+  let lastUpdatedSource = "offline";
+
+  // Danh mục các loại vàng – giá trị mặc định (fallback khi offline)
+  let GOLD_TYPES = [
     {
       id: "sjc_hcm",
       brand: "SJC",
@@ -165,6 +169,71 @@ const GoldManager = (() => {
     return Math.round(amount).toLocaleString("vi-VN") + " ₫";
   }
 
+  /**
+   * Cập nhật GOLD_TYPES từ dữ liệu live (DataHub hoặc local JSON)
+   * Merge theo id: nếu live data có item trùng id -> cập nhật giá
+   * Nếu live data có item mới -> thêm vào
+   */
+  function updateGoldTypes(liveData) {
+    if (!liveData || !liveData.items || liveData.items.length === 0) return false;
+
+    // Cập nhật thời gian
+    lastUpdatedAt = liveData.updatedAt || liveData.updatedDate || new Date().toISOString();
+    lastUpdatedSource = "live";
+
+    // Tạo map từ live items
+    const liveMap = new Map();
+    liveData.items.forEach(item => liveMap.set(item.id, item));
+
+    // Merge vào GOLD_TYPES: cập nhật giá cho các loại vàng đã có
+    GOLD_TYPES.forEach(gt => {
+      const live = liveMap.get(gt.id);
+      if (live) {
+        gt.buy = live.buy;
+        gt.sell = live.sell;
+        if (live.change !== undefined) gt.change = live.change;
+        if (live.name) gt.name = live.name;
+        if (live.brand) gt.brand = live.brand;
+        liveMap.delete(gt.id);
+      }
+    });
+
+    // Thêm các loại vàng mới từ live data mà chưa có trong GOLD_TYPES
+    liveMap.forEach((item, id) => {
+      GOLD_TYPES.push({
+        id: id,
+        brand: item.brand || "Khác",
+        name: item.name || id,
+        city: item.city || "Toàn quốc",
+        buy: item.buy,
+        sell: item.sell,
+        change: item.change || 0,
+        trend: (item.change || 0) >= 0 ? "up" : "down"
+      });
+    });
+
+    // Cache vào localStorage
+    try {
+      localStorage.setItem(GOLD_CACHE_KEY, JSON.stringify({
+        updatedAt: lastUpdatedAt,
+        items: GOLD_TYPES
+      }));
+    } catch (e) { /* quota exceeded */ }
+
+    console.log(`[GoldManager] Đã cập nhật ${liveData.items.length} loại vàng từ ${lastUpdatedSource}`);
+    return true;
+  }
+
+  /**
+   * Lấy thông tin thời gian cập nhật
+   */
+  function getUpdateInfo() {
+    return {
+      updatedAt: lastUpdatedAt,
+      source: lastUpdatedSource
+    };
+  }
+
   // Nạp dữ liệu giá vàng mới nhất từ DataHub-Public (hoặc cache cục bộ)
   async function fetchLatestGoldFromDB() {
     // 1. Thử lấy từ DataHub-Public CDN trực tuyến
@@ -172,6 +241,7 @@ const GoldManager = (() => {
       try {
         const json = await DataHub.getPublicData("market/gold.json");
         if (json && json.items && json.items.length > 0) {
+          lastUpdatedSource = "DataHub-Public";
           return json;
         }
       } catch (e) {
@@ -183,11 +253,30 @@ const GoldManager = (() => {
     try {
       const res = await fetch("data/gold-latest.json");
       if (res.ok) {
+        lastUpdatedSource = "local-cache";
         return await res.json();
       }
     } catch (e) {
       console.warn("Dung du lieu vang offline:", e);
     }
+
+    // 3. Fallback cuối: thử localStorage cache
+    try {
+      const cached = localStorage.getItem(GOLD_CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        lastUpdatedSource = "localStorage";
+        lastUpdatedAt = parsed.updatedAt;
+        if (parsed.items && parsed.items.length > 0) {
+          GOLD_TYPES.length = 0;
+          parsed.items.forEach(item => GOLD_TYPES.push(item));
+        }
+        console.log("[GoldManager] Sử dụng dữ liệu từ localStorage cache");
+        return null;
+      }
+    } catch (e) { /* ignore */ }
+
+    lastUpdatedSource = "offline (mặc định)";
     return null;
   }
 
@@ -304,6 +393,8 @@ const GoldManager = (() => {
     GOLD_TYPES,
     generateHistoricalData,
     fetchLatestGoldFromDB,
+    updateGoldTypes,
+    getUpdateInfo,
     fetchHistoryGoldFromDB,
     fetchHistoryByCustomRange,
     computeStats,
